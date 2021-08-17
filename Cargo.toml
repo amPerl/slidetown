@@ -3,6 +3,10 @@ name = "slidetown"
 version = "0.1.0"
 authors = ["amperl"]
 edition = "2018"
+exclude = [
+    "tests/*",
+    "resources/*"
+]
 
 [dependencies]
 anyhow = "1.0.43"
