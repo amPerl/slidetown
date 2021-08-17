@@ -5,11 +5,11 @@ authors = ["amperl"]
 edition = "2018"
 
 [dependencies]
-anyhow = "1.0.40"
+anyhow = "1.0.43"
 binread = "2.1.1"
 encoding_rs = "0.8.28"
-serde = { version = "1.0.125", features = ["derive"] }
-thiserror = "1.0.24"
+serde = { version = "1.0.127", features = ["derive"] }
+thiserror = "1.0.26"
 quick-xml = { version = "0.22.0", features = ["encoding"] }
 inflate = "0.4.5"
 
