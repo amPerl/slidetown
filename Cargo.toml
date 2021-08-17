@@ -1,8 +1,13 @@
 [package]
 name = "slidetown"
 version = "0.1.0"
-authors = ["amperl"]
 edition = "2018"
+authors = ["amPerl"]
+categories = []
+description = "Drift City / Skid Rush file format parsers"
+homepage = "https://github.com/amPerl/slidetown"
+repository = "https://github.com/amPerl/slidetown"
+license = "MIT"
 exclude = [
     "tests/*",
     "resources/*"
