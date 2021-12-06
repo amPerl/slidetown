@@ -2,7 +2,7 @@ use std::io::SeekFrom;
 use std::io::Write;
 
 use crate::parsers::strings;
-use binread::{
+use binrw::{
     io::{Read, Seek},
     BinRead, BinReaderExt,
 };

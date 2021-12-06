@@ -409,25 +409,29 @@ impl ControlInfo {
     }
 }
 
+pub type Vec2usize = (usize, usize);
+pub type Vec2isize = (isize, isize);
+pub type Vec8f = (f64, f64, f64, f64, f64, f64, f64, f64);
+
 #[derive(Debug, PartialEq, Default)]
 pub struct ControlInfoAttributes {
     pub attr_int_ec: Option<usize>,
-    pub sizes: HashMap<usize, (usize, usize)>,
+    pub sizes: HashMap<usize, Vec2usize>,
     pub positions: HashMap<usize, (isize, isize)>,
-    pub uvs: HashMap<(usize, usize), (f64, f64, f64, f64, f64, f64, f64, f64)>,
-    pub images: HashMap<(usize, usize), String>,
-    pub colors: HashMap<(usize, usize), String>,
+    pub uvs: HashMap<Vec2usize, Vec8f>,
+    pub images: HashMap<Vec2usize, String>,
+    pub colors: HashMap<Vec2usize, String>,
     pub texts: HashMap<usize, String>,
     pub text_aligns: HashMap<usize, usize>,
     pub fonts: HashMap<usize, String>,
-    pub font_colors: HashMap<(usize, usize), String>,
-    pub attr_boolish_map_fo: HashMap<(usize, usize), u8>,
-    pub attr_color_map_foc: HashMap<(usize, usize), String>,
+    pub font_colors: HashMap<Vec2usize, String>,
+    pub attr_boolish_map_fo: HashMap<Vec2usize, u8>,
+    pub attr_color_map_foc: HashMap<Vec2usize, String>,
     pub attr_int_li: Option<isize>,
     pub attr_int_f1: Option<isize>,
     pub attr_int_tl: Option<String>,
     pub attr_boolish_sv: Option<u8>,
-    pub sounds: HashMap<(usize, usize), String>,
+    pub sounds: HashMap<Vec2usize, String>,
 }
 
 impl ControlInfoAttributes {
@@ -723,29 +727,25 @@ where
     Ok((tuple_value_1, tuple_value_2))
 }
 
-fn parse_uv<T, R>(
-    attribute: &Attribute,
-    reader: &mut Reader<R>,
-) -> anyhow::Result<(T, T, T, T, T, T, T, T)>
+fn parse_uv<R>(attribute: &Attribute, reader: &mut Reader<R>) -> anyhow::Result<Vec8f>
 where
-    T: FromStr + Clone,
     R: BufRead,
 {
     let raw_str = attribute.unescape_and_decode_value(reader)?;
-    let uv_values: Vec<T> = raw_str
+    let uv_values: Vec<f64> = raw_str
         .split_ascii_whitespace()
         .map(|s| s.parse())
         .filter_map(Result::ok)
         .collect();
 
     Ok((
-        uv_values.get(0).context("Failed to parse <UV>[0]")?.clone(),
-        uv_values.get(1).context("Failed to parse <UV>[1]")?.clone(),
-        uv_values.get(2).context("Failed to parse <UV>[2]")?.clone(),
-        uv_values.get(3).context("Failed to parse <UV>[3]")?.clone(),
-        uv_values.get(4).context("Failed to parse <UV>[4]")?.clone(),
-        uv_values.get(5).context("Failed to parse <UV>[5]")?.clone(),
-        uv_values.get(6).context("Failed to parse <UV>[6]")?.clone(),
-        uv_values.get(7).context("Failed to parse <UV>[7]")?.clone(),
+        *uv_values.get(0).context("Failed to parse <UV>[0]")?,
+        *uv_values.get(1).context("Failed to parse <UV>[1]")?,
+        *uv_values.get(2).context("Failed to parse <UV>[2]")?,
+        *uv_values.get(3).context("Failed to parse <UV>[3]")?,
+        *uv_values.get(4).context("Failed to parse <UV>[4]")?,
+        *uv_values.get(5).context("Failed to parse <UV>[5]")?,
+        *uv_values.get(6).context("Failed to parse <UV>[6]")?,
+        *uv_values.get(7).context("Failed to parse <UV>[7]")?,
     ))
 }

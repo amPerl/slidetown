@@ -1,7 +1,7 @@
 use encoding_rs::EUC_KR;
 use std::io::SeekFrom;
 
-use binread::{
+use binrw::{
     io::{Read, Seek},
     BinRead, BinResult, ReadOptions,
 };
@@ -21,7 +21,7 @@ pub fn parse_int_prefixed_string<R: Read + Seek>(
             .filter_map(Result::ok)
             .collect(),
     )
-    .map_err(|e| binread::Error::Custom {
+    .map_err(|e| binrw::Error::Custom {
         pos: pos as u64,
         err: Box::new(e),
     })
@@ -41,7 +41,7 @@ pub fn parse_lf_terminated_string<R: Read + Seek>(
             .take_while(|&b| b != b'\n')
             .collect(),
     )
-    .map_err(|e| binread::Error::Custom {
+    .map_err(|e| binrw::Error::Custom {
         pos: pos as u64,
         err: Box::new(e),
     })

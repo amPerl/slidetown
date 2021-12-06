@@ -1,4 +1,4 @@
-use binread::{
+use binrw::{
     io::{Read, Seek},
     BinRead, BinReaderExt,
 };
@@ -34,13 +34,13 @@ pub struct GroupOption {
 pub struct LevelModifier {
     pub header: Header,
 
-    #[br(count=if header.version_date > 20070507 { 1001 } else { 801 }, args(header.speed_length))]
+    #[br(args { count: if header.version_date > 20070507 { 1001 } else { 801 }, inner: (header.speed_length,) })]
     pub speed: Vec<GroupOption>,
-    #[br(count=if header.version_date > 20070507 { 1001 } else { 801 }, args(header.accel_length))]
+    #[br(args { count: if header.version_date > 20070507 { 1001 } else { 801 }, inner: (header.accel_length,) })]
     pub accel: Vec<GroupOption>,
-    #[br(count=if header.version_date > 20070507 { 1001 } else { 801 }, args(header.dura_length))]
+    #[br(args { count: if header.version_date > 20070507 { 1001 } else { 801 }, inner: (header.dura_length,) })]
     pub dura: Vec<GroupOption>,
-    #[br(count=if header.version_date > 20070507 { 1001 } else { 801 }, args(header.boost_length))]
+    #[br(args { count: if header.version_date > 20070507 { 1001 } else { 801 }, inner: (header.boost_length,) })]
     pub boost: Vec<GroupOption>,
 }
 

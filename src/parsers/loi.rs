@@ -1,4 +1,4 @@
-use binread::{
+use binrw::{
     io::{Read, Seek},
     BinRead, BinReaderExt,
 };
@@ -12,6 +12,9 @@ pub struct Header {
     pub block_count: u32,
 }
 
+pub type Vec3f = (f32, f32, f32);
+pub type Mat3x3 = (Vec3f, Vec3f, Vec3f);
+
 #[derive(Debug, PartialEq, BinRead, Serialize, Deserialize)]
 pub struct BlockObject {
     pub unknown1: u32,
@@ -21,8 +24,8 @@ pub struct BlockObject {
     pub object_index: u32,
     pub block_index: u32,
     pub model_table_index: u32,
-    pub position: (f32, f32, f32),
-    pub rotation: ((f32, f32, f32), (f32, f32, f32), (f32, f32, f32)),
+    pub position: Vec3f,
+    pub rotation: Mat3x3,
     pub scale: f32,
     pub unknown8: u32,
     pub unknown9: u32,
@@ -43,8 +46,8 @@ pub struct ObjectExtra {
     pub object_index: u32,
     pub object_extra_index: u32,
     pub unknown3: u32,
-    pub position: (f32, f32, f32),
-    pub rotation: ((f32, f32, f32), (f32, f32, f32), (f32, f32, f32)),
+    pub position: Vec3f,
+    pub rotation: Mat3x3,
     pub unknown4: (f32, f32, f32),
     pub unknown5: f32,
 }
@@ -62,6 +65,13 @@ pub struct UnknownObject3 {
     pub unknown_count: u32,
     #[br(count=unknown_count)]
     pub items: Vec<u32>,
+}
+
+#[derive(Debug, PartialEq, BinRead, Serialize, Deserialize)]
+pub struct UnknownObject3Section {
+    pub unknown_object_3_count: u32,
+    #[br(count=unknown_object_3_count)]
+    pub unknown_objects_3: Vec<UnknownObject3>,
 }
 
 #[derive(Debug, PartialEq, BinRead, Serialize, Deserialize)]
@@ -92,9 +102,8 @@ pub struct Loi {
     #[br(count=header.block_count)]
     pub unknown_objects_2: Vec<UnknownObject2>,
 
-    pub unknown_object_3_count: u32,
-    #[br(count=unknown_object_3_count)]
-    pub unknown_objects_3: Vec<UnknownObject3>,
+    #[br(if(header.version_date >= 20061222))]
+    pub unknown_object_3_section: Option<UnknownObject3Section>,
 
     #[br(count=header.block_count)]
     pub unknown_objects_4: Vec<UnknownObject4>,

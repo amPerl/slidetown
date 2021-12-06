@@ -1,4 +1,4 @@
-use binread::{BinReaderExt, BinResult};
+use binrw::{BinReaderExt, BinResult};
 use slidetown::parsers::agt::{AgtReader, Entry, Header};
 use std::io::Cursor;
 
@@ -93,7 +93,7 @@ fn dev_neodata() -> anyhow::Result<()> {
         0x18, 0x60, 0x13, 0x1A, 0x19, 0x11, 0x15, 0x16, 0x10, 0x12, 0x13, 0x17, 0x38, 0xF1, 0x25,
     ];
     let agt_buffer = include_bytes!("../resources/fixtures/dev_neodata.agt");
-    let mut agt_reader = AgtReader::new(Cursor::new(agt_buffer), &spooky_key);
+    let mut agt_reader = AgtReader::new(Cursor::new(agt_buffer), spooky_key);
 
     let header: Header = Header::parse(&mut agt_reader).unwrap();
     assert_eq!(
