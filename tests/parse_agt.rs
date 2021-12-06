@@ -57,7 +57,7 @@ fn header_eof() {
     for i in 1..header_buffer.len() {
         let mut header_cursor = Cursor::new(&header_buffer[0..i]);
         let result: BinResult<Header> = header_cursor.read_le();
-        assert_eq!(true, result.is_err());
+        assert!(result.is_err());
     }
 }
 

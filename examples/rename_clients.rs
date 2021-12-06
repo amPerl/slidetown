@@ -35,7 +35,7 @@ fn rename_client(client_dir_path: &Path) -> anyhow::Result<()> {
         }
     }
 
-    let client_files = collect_local_paths(&client_dir_path);
+    let client_files = collect_local_paths(client_dir_path);
     for client_file_path in client_files {
         let file_name_lower = client_file_path
             .file_name()
