@@ -115,10 +115,7 @@ pub struct DialogList {
 }
 
 impl DialogList {
-    pub fn from_event<T>(
-        _bytes_start: BytesStart,
-        mut reader: &mut Reader<T>,
-    ) -> anyhow::Result<Self>
+    pub fn from_event<T>(_bytes_start: BytesStart, reader: &mut Reader<T>) -> anyhow::Result<Self>
     where
         T: BufRead,
     {
@@ -131,7 +128,7 @@ impl DialogList {
                 Event::Start(bytes_start) => {
                     let name = bytes_start.name();
                     if name == b"DIALOG" || name == b"D" {
-                        dialogs.push(Dialog::from_event(bytes_start, &mut reader)?);
+                        dialogs.push(Dialog::from_event(bytes_start, reader)?);
                     }
                 }
                 Event::End(bytes_end) => {
@@ -186,10 +183,7 @@ pub struct Dialog {
 }
 
 impl Dialog {
-    pub fn from_event<T>(
-        bytes_start: BytesStart,
-        mut reader: &mut Reader<T>,
-    ) -> anyhow::Result<Self>
+    pub fn from_event<T>(bytes_start: BytesStart, reader: &mut Reader<T>) -> anyhow::Result<Self>
     where
         T: BufRead,
     {
@@ -218,11 +212,11 @@ impl Dialog {
             } else if attribute.key == b"E" {
                 alignment_mask = Some(attribute.unescape_and_decode_value(reader)?.parse()?)
             } else if attribute.key == b"F" {
-                attr_tuple_f = Some(parse_tuple(&attribute, &mut reader)?);
+                attr_tuple_f = Some(parse_tuple(&attribute, reader)?);
             } else if attribute.key == b"G" {
-                offset = Some(parse_tuple(&attribute, &mut reader)?);
+                offset = Some(parse_tuple(&attribute, reader)?);
             } else if attribute.key == b"H" {
-                attr_tuple_h = Some(parse_tuple(&attribute, &mut reader)?);
+                attr_tuple_h = Some(parse_tuple(&attribute, reader)?);
             } else if attribute.key == b"I" {
                 attr_boolish_i = Some(attribute.unescape_and_decode_value(reader)?.parse()?);
             } else {
@@ -241,7 +235,7 @@ impl Dialog {
                 Event::Start(bytes_start) => {
                     let name = bytes_start.name();
                     if name == b"CONTROL" || name == b"C" {
-                        controls.push(Control::from_event(bytes_start, &mut reader)?);
+                        controls.push(Control::from_event(bytes_start, reader)?);
                     }
                 }
                 Event::End(bytes_end) => {
@@ -280,10 +274,7 @@ pub struct Control {
 }
 
 impl Control {
-    pub fn from_event<T>(
-        bytes_start: BytesStart,
-        mut reader: &mut Reader<T>,
-    ) -> anyhow::Result<Self>
+    pub fn from_event<T>(bytes_start: BytesStart, reader: &mut Reader<T>) -> anyhow::Result<Self>
     where
         T: BufRead,
     {
@@ -320,17 +311,17 @@ impl Control {
                 Event::Start(bytes_start) => {
                     let name = bytes_start.name();
                     if name == b"INFO" {
-                        info = Some(ControlInfo::from_event(bytes_start, &mut reader, false)?);
+                        info = Some(ControlInfo::from_event(bytes_start, reader, false)?);
                     } else if name == b"NATION" {
-                        nation = Some(ControlNation::from_event(bytes_start, &mut reader, false)?);
+                        nation = Some(ControlNation::from_event(bytes_start, reader, false)?);
                     }
                 }
                 Event::Empty(bytes_start) => {
                     let name = bytes_start.name();
                     if name == b"INFO" {
-                        info = Some(ControlInfo::from_event(bytes_start, &mut reader, true)?);
+                        info = Some(ControlInfo::from_event(bytes_start, reader, true)?);
                     } else if name == b"NATION" {
-                        nation = Some(ControlNation::from_event(bytes_start, &mut reader, true)?);
+                        nation = Some(ControlNation::from_event(bytes_start, reader, true)?);
                     }
                 }
                 Event::End(bytes_end) => {
@@ -364,7 +355,7 @@ pub struct ControlInfo {
 impl ControlInfo {
     pub fn from_event<T>(
         bytes_start: BytesStart,
-        mut reader: &mut Reader<T>,
+        reader: &mut Reader<T>,
         empty: bool,
     ) -> anyhow::Result<Self>
     where
@@ -387,7 +378,7 @@ impl ControlInfo {
             }
         }
 
-        let attributes = ControlInfoAttributes::from_bytes_start(bytes_start, &mut reader)?;
+        let attributes = ControlInfoAttributes::from_bytes_start(bytes_start, reader)?;
 
         if !empty {
             loop {
@@ -437,7 +428,7 @@ pub struct ControlInfoAttributes {
 impl ControlInfoAttributes {
     pub fn from_bytes_start<T>(
         bytes_start: BytesStart,
-        mut reader: &mut Reader<T>,
+        reader: &mut Reader<T>,
     ) -> anyhow::Result<Self>
     where
         T: BufRead,
@@ -495,7 +486,7 @@ impl ControlInfoAttributes {
 
                 if head == b"POS" {
                     let map_key = parse_index(tail)?;
-                    positions.insert(map_key, parse_tuple(&attribute, &mut reader)?);
+                    positions.insert(map_key, parse_tuple(&attribute, reader)?);
                     consumed = true;
                 } else if head == b"FOC" {
                     let map_key = parse_indices(tail)?;
@@ -511,11 +502,11 @@ impl ControlInfoAttributes {
 
                 if head == b"SZ" {
                     let map_key = parse_index(tail)?;
-                    sizes.insert(map_key, parse_tuple(&attribute, &mut reader)?);
+                    sizes.insert(map_key, parse_tuple(&attribute, reader)?);
                     consumed = true;
                 } else if head == b"UV" {
                     let map_key = parse_indices(tail)?;
-                    uvs.insert(map_key, parse_uv(&attribute, &mut reader)?);
+                    uvs.insert(map_key, parse_uv(&attribute, reader)?);
                     consumed = true;
                 } else if head == b"TA" {
                     let map_key = parse_index(tail)?;
@@ -624,7 +615,7 @@ impl Default for ControlNation {
 impl ControlNation {
     pub fn from_event<T>(
         bytes_start: BytesStart,
-        mut reader: &mut Reader<T>,
+        reader: &mut Reader<T>,
         empty: bool,
     ) -> anyhow::Result<Self>
     where
@@ -646,7 +637,7 @@ impl ControlNation {
             } else if attribute.key == b"G" {
                 this.attr_int_g = attribute.unescape_and_decode_value(reader)?.parse()?;
             } else if attribute.key == b"H" {
-                this.attr_tuple_h = parse_tuple(&attribute, &mut reader)?;
+                this.attr_tuple_h = parse_tuple(&attribute, reader)?;
             } else if attribute.key == b"I" {
                 this.attr_float_i = attribute.unescape_and_decode_value(reader)?.parse()?;
             } else if attribute.key == b"J" {

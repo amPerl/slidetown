@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use encoding_rs::EUC_KR;
 use std::io::SeekFrom;
 
