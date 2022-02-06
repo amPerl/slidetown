@@ -3,7 +3,7 @@ use std::io::Cursor;
 
 #[test]
 fn header_mp_modeltable0() {
-    let loi_buffer = include_bytes!("../resources/fixtures/dcr_mp_main_object0.loi");
+    let loi_buffer = include_bytes!("../resources/loi/dcr_mp_main_object0.loi");
     let mut loi_cursor = Cursor::new(loi_buffer);
     let loi: Loi = Loi::parse(&mut loi_cursor).unwrap();
 

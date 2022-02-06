@@ -93,8 +93,8 @@ impl<'cipher, T: Read + Seek> AgtReader<'cipher, T> {
 }
 
 impl<'cipher, T: Read + Seek> Read for AgtReader<'cipher, T> {
-    fn read(&mut self, mut buf: &mut [u8]) -> std::io::Result<usize> {
-        match self.inner.read(&mut buf) {
+    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+        match self.inner.read(buf) {
             Ok(bytes_read) => {
                 let cipher_len = self.cipher.len();
                 (0..bytes_read).for_each(|i| {

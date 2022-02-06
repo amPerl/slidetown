@@ -1,7 +1,7 @@
 [package]
 name = "slidetown"
 version = "0.1.0"
-edition = "2018"
+edition = "2021"
 authors = ["amPerl"]
 categories = []
 description = "Drift City / Skid Rush file format parsers"
@@ -13,14 +13,26 @@ exclude = [
     "resources/*"
 ]
 
+[features]
+default = ["agt", "hit", "lbf", "levelmodifier", "lf", "lif", "lof", "loi", "nui"]
+agt = ["inflate"]
+hit = []
+lbf = []
+levelmodifier = []
+lf = []
+lif = []
+lof = []
+loi = []
+nui = ["quick-xml"]
+
 [dependencies]
 anyhow = "1.0.43"
 encoding_rs = "0.8.28"
 serde = { version = "1.0.127", features = ["derive"] }
 thiserror = "1.0.26"
-quick-xml = { version = "0.22.0", features = ["encoding"] }
-inflate = "0.4.5"
 binrw = "0.8.0"
+inflate = { version = "0.4.5", optional = true }
+quick-xml = { version = "0.22.0", features = ["encoding"], optional = true }
 
 [dev-dependencies]
 chrono = "0.4.19"

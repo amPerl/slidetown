@@ -3,7 +3,7 @@ use std::io::Cursor;
 
 #[test]
 fn header_mp_modeltable0() {
-    let lof_buffer = include_bytes!("../resources/fixtures/dev_mp_modeltable0_nodata.lof");
+    let lof_buffer = include_bytes!("../resources/lof/dev_mp_modeltable0_nodata.lof");
     let mut lof_cursor = Cursor::new(lof_buffer);
     let lof: Lof = Lof::parse(&mut lof_cursor).unwrap();
 

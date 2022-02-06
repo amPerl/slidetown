@@ -4,7 +4,7 @@ use slidetown::parsers::nui::{
 
 #[test]
 fn legacy_nui() -> anyhow::Result<()> {
-    let nui_buffer = include_bytes!("../resources/fixtures/legacy_game.nui");
+    let nui_buffer = include_bytes!("../resources/nui/legacy_game.nui");
     let nui_cursor = std::io::Cursor::new(nui_buffer);
     let nui = Document::from_read(nui_cursor)?;
 
@@ -30,7 +30,7 @@ fn legacy_nui() -> anyhow::Result<()> {
 
 #[test]
 fn modern_nui() -> anyhow::Result<()> {
-    let nui_buffer = include_bytes!("../resources/fixtures/modern_game.nui");
+    let nui_buffer = include_bytes!("../resources/nui/modern_game.nui");
     let nui_cursor = std::io::Cursor::new(nui_buffer);
     let nui = Document::from_read(nui_cursor)?;
 
