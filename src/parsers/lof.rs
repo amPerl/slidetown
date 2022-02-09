@@ -41,7 +41,7 @@ pub struct Model {
 #[derive(Debug, PartialEq, BinRead, Serialize, Deserialize)]
 pub struct Lof {
     pub header: Header,
-    #[br(count=header.model_count)]
+    #[br(count = header.model_count)]
     pub models: Vec<Model>,
 }
 

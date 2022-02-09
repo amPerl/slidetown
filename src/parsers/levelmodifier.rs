@@ -14,13 +14,13 @@ pub struct Header {
     pub dura_length: u32,
     pub boost_length: u32,
 
-    #[br(count=speed_length)]
+    #[br(count = speed_length)]
     pub speed_ids: Vec<u32>,
-    #[br(count=accel_length)]
+    #[br(count = accel_length)]
     pub accel_ids: Vec<u32>,
-    #[br(count=dura_length)]
+    #[br(count = dura_length)]
     pub dura_ids: Vec<u32>,
-    #[br(count=boost_length)]
+    #[br(count = boost_length)]
     pub boost_ids: Vec<u32>,
 }
 #[derive(Debug, PartialEq, BinRead, Serialize, Deserialize)]

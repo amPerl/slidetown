@@ -41,7 +41,7 @@ pub struct BlockObject {
 pub struct Lbf {
     pub header: Header,
 
-    #[br(count=header.block_count)]
+    #[br(count = header.block_count)]
     pub blocks: Vec<Block>,
 }
 

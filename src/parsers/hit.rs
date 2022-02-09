@@ -20,12 +20,12 @@ pub struct Hit {
 
     #[bw(calc = indices.len() as u32)]
     pub index_count: u32,
-    #[br(count=index_count)]
+    #[br(count = index_count)]
     pub indices: Vec<u32>,
 
     #[bw(calc = verts.len() as u32)]
     pub vert_count: u32,
-    #[br(count=vert_count)]
+    #[br(count = vert_count)]
     pub verts: Vec<(f32, f32, f32)>,
 }
 

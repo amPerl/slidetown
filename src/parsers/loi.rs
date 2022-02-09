@@ -41,7 +41,7 @@ pub struct BlockObject {
 pub struct Block {
     pub block_index: u32,
     pub object_count: u32,
-    #[br(count=object_count)]
+    #[br(count = object_count)]
     pub objects: Vec<BlockObject>,
 }
 
@@ -60,8 +60,9 @@ pub struct ObjectExtra {
 #[binrw]
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct UnknownObject2 {
+    #[bw(calc = items.len() as u32)]
     pub unknown_count: u32,
-    #[br(count=unknown_count)]
+    #[br(count = unknown_count)]
     pub items: Vec<u32>,
 }
 
@@ -69,33 +70,37 @@ pub struct UnknownObject2 {
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct UnknownObject3 {
     pub unknown1: u32,
+    #[bw(calc = items.len() as u32)]
     pub unknown_count: u32,
-    #[br(count=unknown_count)]
+    #[br(count = unknown_count)]
     pub items: Vec<u32>,
 }
 
 #[binrw]
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct UnknownObject3Section {
+    #[bw(calc = unknown_objects_3.len() as u32)]
     pub unknown_object_3_count: u32,
-    #[br(count=unknown_object_3_count)]
+    #[br(count = unknown_object_3_count)]
     pub unknown_objects_3: Vec<UnknownObject3>,
 }
 
 #[binrw]
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct UnknownObject4 {
+    #[bw(calc = items.len() as u32)]
     pub unknown_count: u32,
     pub unknown1: u32,
-    #[br(count=unknown_count)]
+    #[br(count = unknown_count)]
     pub items: Vec<u32>,
 }
 
 #[binrw]
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct UnknownObject5 {
+    #[bw(calc = object_indices.len() as u32)]
     pub object_count: u32,
-    #[br(count=object_count)]
+    #[br(count = object_count)]
     pub object_indices: Vec<u32>,
 }
 
@@ -104,23 +109,25 @@ pub struct UnknownObject5 {
 pub struct Loi {
     pub header: Header,
 
+    #[bw(calc = blocks.len() as u32)]
     pub block_count: u32,
-    #[br(count=block_count)]
+    #[br(count = block_count)]
     pub blocks: Vec<Block>,
 
+    #[bw(calc = object_extras.len() as u32)]
     pub object_extra_count: u32,
-    #[br(count=object_extra_count)]
+    #[br(count = object_extra_count)]
     pub object_extras: Vec<ObjectExtra>,
 
-    #[br(count=block_count)]
+    #[br(count = block_count)]
     pub unknown_objects_2: Vec<UnknownObject2>,
 
     pub unknown_object_3_section: UnknownObject3Section,
 
-    #[br(count=block_count)]
+    #[br(count = block_count)]
     pub unknown_objects_4: Vec<UnknownObject4>,
 
-    #[br(count=block_count)]
+    #[br(count = block_count)]
     pub unknown_objects_5: Vec<UnknownObject5>,
 }
 

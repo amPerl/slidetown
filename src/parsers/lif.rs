@@ -27,7 +27,7 @@ pub struct Lif {
     pub header: Header,
     #[bw(calc = blocks.len() as u32)]
     pub block_count: u32,
-    #[br(count=block_count)]
+    #[br(count = block_count)]
     pub blocks: Vec<Block>,
 }
 
