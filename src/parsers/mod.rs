@@ -2,6 +2,8 @@ mod strings;
 
 #[cfg(feature = "agt")]
 pub mod agt;
+#[cfg(feature = "chpath")]
+pub mod chpath;
 #[cfg(feature = "hit")]
 pub mod hit;
 #[cfg(feature = "lbf")]

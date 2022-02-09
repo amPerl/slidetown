@@ -14,7 +14,7 @@ exclude = [
 ]
 
 [features]
-default = ["agt", "hit", "lbf", "levelmodifier", "lf", "lif", "lof", "loi", "nui"]
+default = ["agt", "hit", "lbf", "levelmodifier", "lf", "lif", "lof", "loi", "nui", "chpath"]
 agt = ["inflate"]
 hit = []
 lbf = []
@@ -24,6 +24,7 @@ lif = []
 lof = []
 loi = []
 nui = ["quick-xml"]
+chpath = []
 
 [dependencies]
 anyhow = "1.0.43"
