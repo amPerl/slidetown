@@ -5,7 +5,7 @@ use std::io::Cursor;
 fn oros_track1_chpath() {
     let in_buf = include_bytes!("../resources/chpath/PVP_map3_01.chpath");
     let mut in_file = Cursor::new(in_buf);
-    let chpath: Chpath = Chpath::read(&mut in_file).unwrap();
+    let chpath = Chpath::read(&mut in_file).unwrap();
 
     assert_eq!(9369, in_file.position());
 
