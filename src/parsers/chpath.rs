@@ -54,12 +54,26 @@ pub struct Path {
     #[br(count = point_count)]
     pub points: Vec<(f32, f32, f32, f32)>,
 
-    pub always_same_4: [u32; 3],
+    #[bw(ignore)]
+    #[br(temp, try, restore_position)]
+    pub peek: u32,
+
+    #[br(if(peek == 20010710))]
+    pub missing_in_taipei: Option<[u32; 3]>,
 }
 
 impl Path {
+    const SIZE_POINT: usize = 16;
+    const SIZE_REST: usize = 104;
+    const SIZE_REST_TAIPEI: usize = 92;
+
     pub fn size_bytes(&self) -> usize {
-        16 * self.points.len() + 104
+        Self::SIZE_POINT * self.points.len()
+            + if self.missing_in_taipei.is_some() {
+                Self::SIZE_REST
+            } else {
+                Self::SIZE_REST_TAIPEI
+            }
     }
 }
 
