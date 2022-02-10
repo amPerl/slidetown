@@ -7,10 +7,9 @@ use serde::{Deserialize, Serialize};
 
 #[binrw]
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
-#[brw(magic = b"LOI\0kjc\0")]
+#[brw(magic = b"LOI\0kjc\0ag\0\0")]
 pub struct Header {
-    pub unknown1: u32,
-    #[br(assert(version_date == 20061222, "unexpected version {}", version_date))]
+    #[br(assert(version_date == 20061222 || version_date == 20090403, "unexpected version {}", version_date))]
     pub version_date: u32,
 }
 
@@ -40,6 +39,7 @@ pub struct BlockObject {
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Block {
     pub block_index: u32,
+    #[bw(calc = objects.len() as u32)]
     pub object_count: u32,
     #[br(count = object_count)]
     pub objects: Vec<BlockObject>,
@@ -105,6 +105,7 @@ pub struct UnknownObject5 {
 }
 
 #[binrw]
+#[br(import(total_block_count: usize))]
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Loi {
     pub header: Header,
@@ -119,21 +120,21 @@ pub struct Loi {
     #[br(count = object_extra_count)]
     pub object_extras: Vec<ObjectExtra>,
 
-    #[br(count = block_count)]
+    #[br(count = total_block_count)]
     pub unknown_objects_2: Vec<UnknownObject2>,
 
     pub unknown_object_3_section: UnknownObject3Section,
 
-    #[br(count = block_count)]
+    #[br(count = total_block_count)]
     pub unknown_objects_4: Vec<UnknownObject4>,
 
-    #[br(count = block_count)]
+    #[br(count = total_block_count)]
     pub unknown_objects_5: Vec<UnknownObject5>,
 }
 
 impl Loi {
-    pub fn read<R: Read + Seek>(reader: &mut R) -> anyhow::Result<Self> {
-        Ok(reader.read_le()?)
+    pub fn read<R: Read + Seek>(reader: &mut R, total_block_count: usize) -> anyhow::Result<Self> {
+        Ok(reader.read_le_args((total_block_count,))?)
     }
 
     pub fn write<W: Write + Seek>(&self, writer: &mut W) -> anyhow::Result<()> {
