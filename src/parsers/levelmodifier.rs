@@ -43,14 +43,6 @@ impl LevelModifierVersion {
             LevelModifierVersion::Stage3 => 1201,
         }
     }
-
-    pub fn has_stage2_fields(&self) -> bool {
-        match self {
-            LevelModifierVersion::Stage1 => false,
-            LevelModifierVersion::Stage2 => true,
-            LevelModifierVersion::Stage3 => false,
-        }
-    }
 }
 
 #[binrw]
