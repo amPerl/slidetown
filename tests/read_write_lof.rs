@@ -2,7 +2,7 @@ use slidetown::parsers::lof::Lof;
 use std::io::Cursor;
 
 #[test]
-fn header_mp_modeltable0() {
+fn dev_mp_modeltable0_nodata_lof_rewrite() {
     let in_buf = include_bytes!("../resources/lof/dev_mp_modeltable0_nodata.lof");
     let mut in_file = Cursor::new(in_buf);
     let lof = Lof::read_without_data(&mut in_file).unwrap();
