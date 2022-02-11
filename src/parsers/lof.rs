@@ -1,20 +1,21 @@
 use crate::parsers::strings;
 use binrw::{
-    io::{Read, Seek},
-    BinRead, BinReaderExt,
+    binrw,
+    io::{Read, Seek, Write},
+    BinReaderExt, BinWriterExt,
 };
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, PartialEq, BinRead, Serialize, Deserialize)]
-#[br(magic = b"LOF\0kjc\0")]
+#[binrw]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[brw(magic = b"LOF\0kjc\0ag\0\0")]
 pub struct Header {
-    pub unknown1: u32,
+    #[br(assert(version_date == 20061222, "unexpected version {}", version_date))]
     pub version_date: u32,
-    pub model_count: u32,
-    pub unknown2: u32,
 }
 
-#[derive(Debug, PartialEq, BinRead, Serialize, Deserialize)]
+#[binrw]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Model {
     pub index: u32,
     pub unknown1: u32,
@@ -24,9 +25,11 @@ pub struct Model {
     pub unknown5: u32,
 
     #[br(parse_with = strings::parse_null_terminated_euc_kr_string )]
+    #[bw(map = strings::string_to_null_terminated_euc_kr)]
     pub name: String,
 
     #[br(parse_with = strings::parse_null_terminated_euc_kr_string )]
+    #[bw(map = strings::string_to_null_terminated_euc_kr)]
     pub file_name: String,
 
     pub unknown6: f32,
@@ -38,27 +41,23 @@ pub struct Model {
     pub file_length: u32,
 }
 
-#[derive(Debug, PartialEq, BinRead, Serialize, Deserialize)]
+#[binrw]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Lof {
     pub header: Header,
-    #[br(count = header.model_count)]
+    #[bw(calc = models.len() as u32)]
+    pub model_count: u32,
+    pub unknown1: u32,
+    #[br(count = model_count)]
     pub models: Vec<Model>,
 }
 
-impl Header {
-    pub fn parse<R: Read + Seek>(reader: &mut R) -> anyhow::Result<Self> {
-        Ok(reader.read_le()?)
-    }
-}
-
-impl Model {
-    pub fn parse<R: Read + Seek>(reader: &mut R) -> anyhow::Result<Self> {
-        Ok(reader.read_le()?)
-    }
-}
-
 impl Lof {
-    pub fn parse<R: Read + Seek>(reader: &mut R) -> anyhow::Result<Self> {
+    pub fn read_without_data<R: Read + Seek>(reader: &mut R) -> anyhow::Result<Self> {
         Ok(reader.read_le()?)
+    }
+
+    pub fn write_without_data<W: Write + Seek>(&self, writer: &mut W) -> anyhow::Result<()> {
+        Ok(writer.write_le(self)?)
     }
 }

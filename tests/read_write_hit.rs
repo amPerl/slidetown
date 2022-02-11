@@ -7,7 +7,7 @@ fn mp_track1_area_hit() {
     let mut in_file = Cursor::new(in_buf);
     let hit = Hit::read(&mut in_file).unwrap();
 
-    assert_eq!(381148, in_file.position());
+    assert_eq!(in_buf.len(), in_file.position() as usize);
 
     let mut out_buf = Vec::new();
     let mut out_file = Cursor::new(&mut out_buf);

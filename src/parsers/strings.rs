@@ -63,3 +63,10 @@ pub fn parse_null_terminated_euc_kr_string<R: Read + Seek>(
     let (cow, _encoding_used, _had_errors) = EUC_KR.decode(&bytes);
     Ok(cow.to_string())
 }
+
+#[allow(clippy::ptr_arg)]
+pub fn string_to_null_terminated_euc_kr(s: &String) -> Vec<u8> {
+    let null_terminated = format!("{}\0", s);
+    let (cow, _encoding_used, _had_errors) = EUC_KR.encode(&null_terminated);
+    cow.to_vec()
+}
