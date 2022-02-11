@@ -20,7 +20,7 @@ pub struct Model {
     pub index: u32,
     pub unknown1: u32,
     pub unknown2: u32,
-    pub unknown3: u32, // only in newer versions
+    pub unknown3: u32, // since 20061216
     pub unknown4: u32,
     pub unknown5: u32,
 
@@ -33,8 +33,8 @@ pub struct Model {
     pub file_name: String,
 
     pub unknown6: f32,
-    pub unknown7: u32, // only in newer versions
-    pub unknown8: u32, // only in newer versions
+    pub unknown7: u32, // since 20061216
+    pub unknown8: u32, // since 20061216
     #[serde(skip)]
     pub file_offset: u32,
     #[serde(skip)]
