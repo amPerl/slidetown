@@ -98,13 +98,6 @@ pub struct LevelModifier {
     pub dura: Vec<GroupOption>,
     #[br(args { count: header.version.boost_range(), inner: (boost_length,) })]
     pub boost: Vec<GroupOption>,
-
-    #[br(if(header.version.has_stage2_fields()), args { count: 57, inner: (19,) })]
-    pub stage2_unk1: Option<Vec<GroupOption>>,
-    #[br(if(header.version.has_stage2_fields()))]
-    pub stage2_unk2: Option<[f32; 2]>,
-    #[br(if(header.version.has_stage2_fields()), args { count: 873, inner: (3,) })]
-    pub stage2_unk3: Option<Vec<GroupOption>>,
 }
 
 impl LevelModifier {
