@@ -1,11 +1,11 @@
 use crate::parsers::strings;
 use binrw::{
     io::{Read, Seek},
-    BinRead, BinReaderExt,
+    BinRead, BinReaderExt, BinWrite,
 };
 
-#[derive(Debug, PartialEq, BinRead)]
-#[br(magic = b"NayaPack")]
+#[derive(Debug, PartialEq, BinRead, BinWrite)]
+#[brw(magic = b"NayaPack")]
 pub struct Header {
     pub what: u32,
     pub version: (u16, u16),
@@ -15,13 +15,26 @@ pub struct Header {
     pub what4: u32,
 }
 
-#[derive(Debug, PartialEq, BinRead)]
+impl Default for Header {
+    fn default() -> Self {
+        Self {
+            what: 0,
+            version: (1, 1),
+            file_count: 0,
+            what2: 0,
+            what3: 0,
+            what4: 0,
+        }
+    }
+}
+#[derive(Debug, PartialEq, BinRead, BinWrite, Clone)]
 pub struct Entry {
-    pub header_offset: u32,
+    pub chunks_offset: u32,
     pub chunk_count: u32,
     pub decompressed_length: u32,
 
-    #[br(parse_with = strings::parse_int_prefixed_string )]
+    #[br(parse_with = strings::read_int_prefixed_string)]
+    #[bw(write_with = strings::write_int_prefixed_string)]
     pub path: String,
 }
 

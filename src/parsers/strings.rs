@@ -4,11 +4,11 @@ use encoding_rs::EUC_KR;
 use std::io::SeekFrom;
 
 use binrw::{
-    io::{Read, Seek},
-    BinRead, BinResult, ReadOptions,
+    io::{Read, Seek, Write},
+    BinRead, BinResult, BinWrite, ReadOptions, WriteOptions,
 };
 
-pub fn parse_int_prefixed_string<R: Read + Seek>(
+pub fn read_int_prefixed_string<R: Read + Seek>(
     reader: &mut R,
     options: &ReadOptions,
     _: (),
@@ -27,6 +27,17 @@ pub fn parse_int_prefixed_string<R: Read + Seek>(
         pos: pos as u64,
         err: Box::new(e),
     })
+}
+
+pub fn write_int_prefixed_string<W: Write + Seek>(
+    value: &String,
+    writer: &mut W,
+    opts: &WriteOptions,
+    args: (),
+) -> BinResult<()> {
+    let str_bytes = value.as_bytes();
+    (str_bytes.len() as u32).write_options(writer, opts, args)?;
+    str_bytes.write_options(writer, opts, args)
 }
 
 pub fn parse_lf_terminated_string<R: Read + Seek>(

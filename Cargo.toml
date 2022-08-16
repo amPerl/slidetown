@@ -15,7 +15,7 @@ exclude = [
 
 [features]
 default = ["agt", "hit", "lbf", "levelmodifier", "lf", "lif", "lof", "loi", "nui", "chpath"]
-agt = ["inflate"]
+agt = ["flate2"]
 hit = []
 lbf = []
 levelmodifier = []
@@ -32,7 +32,7 @@ encoding_rs = "0.8.28"
 serde = { version = "1.0.127", features = ["derive"] }
 thiserror = "1.0.26"
 binrw = "0.8.0"
-inflate = { version = "0.4.5", optional = true }
+flate2 = { version = "1.0.24", optional = true }
 quick-xml = { version = "0.22.0", features = ["encoding"], optional = true }
 
 [dev-dependencies]
