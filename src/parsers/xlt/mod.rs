@@ -2,6 +2,8 @@ use std::io::{Read, Write};
 
 use anyhow::Context;
 
+pub mod spoiler_list;
+pub mod tire_list;
 pub mod vehicle_list;
 pub mod visual_item_list;
 pub mod vshop_item_list;

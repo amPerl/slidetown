@@ -1,6 +1,8 @@
 use std::collections::HashMap;
 
 use crate::parsers::xlt::{
+    spoiler_list::{SpoilerList, SpoilerListEntry},
+    tire_list::{TireList, TireListEntry},
     vehicle_list::{VehicleKind, VehicleList, VehicleListEntry},
     visual_item_list::{VisualItemCategory, VisualItemList, VisualItemListEntry},
     vshop_item_list::VShopItemList,
@@ -11,6 +13,8 @@ pub struct InitConfiguration {
     pub vehicle_list: VehicleList,
     pub visual_item_list: VisualItemList,
     pub vshop_item_list: VShopItemList,
+    pub tire_list: TireList,
+    pub spoiler_list: SpoilerList,
 }
 
 impl InitConfiguration {
@@ -18,11 +22,15 @@ impl InitConfiguration {
         vehicle_list_xlt: &Xlt,
         visual_item_list_xlt: &Xlt,
         vshop_item_list_xlt: &Xlt,
+        tire_list_xlt: &Xlt,
+        spoiler_list_xlt: &Xlt,
     ) -> anyhow::Result<Self> {
         Ok(Self {
             vehicle_list: VehicleList::from_xlt(vehicle_list_xlt)?,
             visual_item_list: VisualItemList::from_xlt(visual_item_list_xlt)?,
             vshop_item_list: VShopItemList::from_xlt(vshop_item_list_xlt)?,
+            tire_list: TireList::from_xlt(tire_list_xlt)?,
+            spoiler_list: SpoilerList::from_xlt(spoiler_list_xlt)?,
         })
     }
 
@@ -78,5 +86,19 @@ impl InitConfiguration {
             .map(|e| e.default_part.trim())
             .unwrap_or_default()
             == "1"
+    }
+
+    pub fn tire_info(&self, tire_id: usize) -> Option<&TireListEntry> {
+        self.tire_list
+            .entries
+            .iter()
+            .find(|e| e.id == tire_id as isize)
+    }
+
+    pub fn spoiler_info(&self, spoiler_id: usize) -> Option<&SpoilerListEntry> {
+        self.spoiler_list
+            .entries
+            .iter()
+            .find(|e| e.id == spoiler_id)
     }
 }

@@ -2,6 +2,8 @@ use std::{collections::HashMap, io::Cursor};
 
 use slidetown::{
     parsers::xlt::{
+        spoiler_list::SpoilerList,
+        tire_list::TireList,
         vehicle_list::VehicleList,
         visual_item_list::{VisualItemCategory, VisualItemList},
         vshop_item_list::VShopItemList,
@@ -77,6 +79,44 @@ fn vshopitem_022() -> anyhow::Result<()> {
 }
 
 #[test]
+fn tirelist_022() -> anyhow::Result<()> {
+    let original_bytes = std::fs::read("resources/xlt/TireList_0.22.xlt")?;
+    let xlt = Xlt::read(&mut Cursor::new(&original_bytes))?;
+
+    assert_eq!(xlt.rows[1][1], "125");
+
+    let tire_list = TireList::from_xlt(&xlt)?;
+
+    assert_eq!(tire_list.entries[0].diameter, 180);
+
+    let mut rewritten_bytes = Vec::new();
+    xlt.write(&mut Cursor::new(&mut rewritten_bytes))?;
+
+    assert_eq!(&original_bytes, &rewritten_bytes[..original_bytes.len()]);
+
+    Ok(())
+}
+
+#[test]
+fn spoilerlist_022() -> anyhow::Result<()> {
+    let original_bytes = std::fs::read("resources/xlt/SpoilerList_0.22.xlt")?;
+    let xlt = Xlt::read(&mut Cursor::new(&original_bytes))?;
+
+    assert_eq!(xlt.rows[1][1], "34");
+
+    let spoiler_list = SpoilerList::from_xlt(&xlt)?;
+
+    assert_eq!(spoiler_list.entries[0].id, 32);
+
+    let mut rewritten_bytes = Vec::new();
+    xlt.write(&mut Cursor::new(&mut rewritten_bytes))?;
+
+    assert_eq!(&original_bytes, &rewritten_bytes[..original_bytes.len()]);
+
+    Ok(())
+}
+
+#[test]
 fn init_configuration() -> anyhow::Result<()> {
     let vehicle_list_bytes = std::fs::read("resources/xlt/VehicleList_0.22.xlt")?;
     let vehicle_list_xlt = Xlt::read(&mut Cursor::new(&vehicle_list_bytes))?;
@@ -84,11 +124,17 @@ fn init_configuration() -> anyhow::Result<()> {
     let visual_item_list_xlt = Xlt::read(&mut Cursor::new(&visual_item_list_bytes))?;
     let vshop_item_list_bytes = std::fs::read("resources/xlt/VShopItem_0.22.xlt")?;
     let vshop_item_list_xlt = Xlt::read(&mut Cursor::new(&vshop_item_list_bytes))?;
+    let tire_list_bytes = std::fs::read("resources/xlt/TireList_0.22.xlt")?;
+    let tire_list_xlt = Xlt::read(&mut Cursor::new(&tire_list_bytes))?;
+    let spoiler_list_bytes = std::fs::read("resources/xlt/SpoilerList_0.22.xlt")?;
+    let spoiler_list_xlt = Xlt::read(&mut Cursor::new(&spoiler_list_bytes))?;
 
     let init = InitConfiguration::from_xlts(
         &vehicle_list_xlt,
         &visual_item_list_xlt,
         &vshop_item_list_xlt,
+        &tire_list_xlt,
+        &spoiler_list_xlt,
     )?;
 
     for vehicle in init.player_vehicles() {
@@ -97,7 +143,21 @@ fn init_configuration() -> anyhow::Result<()> {
         //     vehicle.id, vehicle.name, vehicle.file_name
         // );
 
-        let _defaults = init.vehicle_default_items(vehicle.id);
+        let defaults = init.vehicle_default_items(vehicle.id);
+
+        if let Some(tire) = defaults.get(&VisualItemCategory::Tire) {
+            let _tire_info = init.tire_info(tire.category_item_id);
+            // eprintln!("\ttire info {:?}", tire_info);
+        }
+
+        if let Some(spoiler) = defaults.get(&VisualItemCategory::Spoiler) {
+            // eprintln!(
+            //     "\t\tspoiler id {:?} category item id {:?}",
+            //     spoiler.id, spoiler.category_item_id
+            // );
+            let _spoiler_info = init.spoiler_info(spoiler.category_item_id);
+            // eprintln!("\tspoiler info {:?}", spoiler_info);
+        }
 
         // for item in defaults.values() {
         //     eprintln!("\tname {:?} id {:?}", item.name, item.item_id);

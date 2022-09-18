@@ -231,6 +231,7 @@ impl FromStr for VisualItemCategory {
 #[derive(Debug)]
 pub struct VisualItemListEntry {
     pub category: VisualItemCategory,
+    pub category_item_id: usize,
     pub item_id: String,
     pub id: usize,
     pub name: String,
@@ -247,7 +248,12 @@ impl VisualItemListEntry {
             .trim()
             .parse()
             .context("failed to parse visual item category")?;
-        let _index = row_iter.next().context("expected item index at column 3");
+        let category_item_id = row_iter
+            .next()
+            .context("expected category item id at column 3")?
+            .trim()
+            .parse()
+            .context("failed to parse category item id")?;
         let item_id = row_iter
             .next()
             .context("expected item id at column 4")?
@@ -275,6 +281,7 @@ impl VisualItemListEntry {
             .collect();
         Ok(Self {
             category,
+            category_item_id,
             item_id,
             id,
             name,
