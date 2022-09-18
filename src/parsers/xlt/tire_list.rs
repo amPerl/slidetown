@@ -2,7 +2,7 @@ use anyhow::Context;
 
 use super::Xlt;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct TireList {
     pub meta: TireListMeta,
     pub entries: Vec<TireListEntry>,
@@ -35,7 +35,7 @@ impl TireList {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct TireListMeta {
     pub count: usize,
 }
@@ -48,7 +48,7 @@ impl TireListMeta {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct TireListEntry {
     pub id: isize,
     pub name: String,

@@ -9,6 +9,7 @@ use crate::parsers::xlt::{
     Xlt,
 };
 
+#[derive(Debug)]
 pub struct InitConfiguration {
     pub vehicle_list: VehicleList,
     pub visual_item_list: VisualItemList,

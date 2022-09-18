@@ -8,7 +8,7 @@ pub mod vehicle_list;
 pub mod visual_item_list;
 pub mod vshop_item_list;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Xlt {
     pub rows: Vec<Vec<String>>,
 }

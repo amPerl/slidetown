@@ -4,7 +4,7 @@ use anyhow::Context;
 
 use super::Xlt;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct VisualItemList {
     pub meta: VisualItemListMeta,
     pub vehicle_definitions: VehicleDefinitions,
@@ -46,7 +46,7 @@ impl VisualItemList {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct VisualItemListMeta {
     pub list_count: usize,
     pub car_type_count: usize,
@@ -72,7 +72,7 @@ impl VisualItemListMeta {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct VehicleDefinitions {
     pub ids: Vec<usize>,
     pub names: Vec<String>,
@@ -228,7 +228,7 @@ impl FromStr for VisualItemCategory {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct VisualItemListEntry {
     pub category: VisualItemCategory,
     pub category_item_id: usize,

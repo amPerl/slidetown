@@ -4,7 +4,7 @@ use anyhow::Context;
 
 use super::Xlt;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct VehicleList {
     pub meta: VehicleListMeta,
     pub entries: Vec<VehicleListEntry>,
@@ -40,7 +40,7 @@ impl VehicleList {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct VehicleListMeta {
     pub player_car_base: usize,
     pub huv_base: usize,
@@ -66,7 +66,7 @@ impl VehicleListMeta {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum VehicleKind {
     PlayerCar,
     Player,
@@ -92,7 +92,7 @@ impl FromStr for VehicleKind {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum GradeKind {
     V,
     R,
@@ -110,7 +110,7 @@ impl FromStr for GradeKind {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum VehicleRequirement {
     Gotcha,
     Event,
@@ -128,7 +128,7 @@ impl FromStr for VehicleRequirement {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum CarFlag {
     G,
     H,
@@ -152,7 +152,7 @@ impl FromStr for CarFlag {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct VehicleListEntry {
     pub enabled: bool,
     pub kind: VehicleKind,

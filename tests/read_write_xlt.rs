@@ -1,4 +1,4 @@
-use std::{collections::HashMap, io::Cursor};
+use std::io::Cursor;
 
 use slidetown::{
     parsers::xlt::{

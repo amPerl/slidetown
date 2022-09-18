@@ -2,7 +2,7 @@ use anyhow::Context;
 
 use super::Xlt;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct VShopItemList {
     pub meta: VShopItemListMeta,
     pub entries: Vec<VShopItemListEntry>,
@@ -35,7 +35,7 @@ impl VShopItemList {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct VShopItemListMeta {
     pub count: usize,
     pub bonus_mito_rate: usize,
@@ -58,7 +58,7 @@ impl VShopItemListMeta {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct VShopItemListEntry {
     pub enabled: String,
     pub id: String,
