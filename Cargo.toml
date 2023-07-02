@@ -10,7 +10,7 @@ repository = "https://github.com/amPerl/slidetown"
 license = "MIT"
 
 [features]
-default = ["agt", "hit", "lbf", "levelmodifier", "lf", "lif", "lof", "loi", "nui", "chpath", "xlt"]
+default = ["agt", "hit", "lbf", "levelmodifier", "lf", "lif", "lof", "loi", "nui", "chpath", "xlt", "tdf", "ntx"]
 agt = ["flate2"]
 hit = []
 lbf = []
@@ -22,6 +22,8 @@ loi = []
 nui = ["quick-xml"]
 chpath = []
 xlt = []
+tdf = []
+ntx = []
 
 [dependencies]
 anyhow = "1.0.43"

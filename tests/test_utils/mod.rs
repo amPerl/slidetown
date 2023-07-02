@@ -13,6 +13,7 @@ pub fn test_full_rewrite<'ra, 'wa, S: BinWrite + BinRead>(
 where
     <S as BinRead>::Args<'ra>: Clone,
     <S as BinWrite>::Args<'wa>: Clone,
+    S: std::fmt::Debug,
 {
     // Open input file for reading
     let mut in_file = BufReader::new(File::open(path)?);
@@ -27,6 +28,8 @@ where
 
     let mut in_cursor = Cursor::new(&in_buf);
     let result: S = in_cursor.read_le_args(read_args)?;
+
+    // dbg!(&result);
 
     let mut out_buf = Vec::new();
     let mut out_file = Cursor::new(&mut out_buf);
