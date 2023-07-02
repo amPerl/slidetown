@@ -3,18 +3,12 @@
 use encoding_rs::EUC_KR;
 use std::io::SeekFrom;
 
-use binrw::{
-    io::{Read, Seek, Write},
-    BinRead, BinResult, BinWrite, ReadOptions, WriteOptions,
-};
+use binrw::{io::Read, BinRead, BinResult, BinWrite};
 
-pub fn read_int_prefixed_string<R: Read + Seek>(
-    reader: &mut R,
-    options: &ReadOptions,
-    _: (),
-) -> BinResult<String> {
+#[binrw::parser(reader, endian)]
+pub fn read_int_prefixed_string() -> BinResult<String> {
     let pos = reader.seek(SeekFrom::Current(0))?;
-    let count = u32::read_options(reader, options, ())?;
+    let count = u32::read_options(reader, endian, ())?;
 
     String::from_utf8(
         reader
@@ -29,22 +23,15 @@ pub fn read_int_prefixed_string<R: Read + Seek>(
     })
 }
 
-pub fn write_int_prefixed_string<W: Write + Seek>(
-    value: &String,
-    writer: &mut W,
-    opts: &WriteOptions,
-    args: (),
-) -> BinResult<()> {
+#[binrw::writer(writer, endian)]
+pub fn write_int_prefixed_string(value: &String) -> BinResult<()> {
     let str_bytes = value.as_bytes();
-    (str_bytes.len() as u32).write_options(writer, opts, args)?;
-    str_bytes.write_options(writer, opts, args)
+    (str_bytes.len() as u32).write_options(writer, endian, ())?;
+    str_bytes.write_options(writer, endian, ())
 }
 
-pub fn parse_lf_terminated_string<R: Read + Seek>(
-    reader: &mut R,
-    _options: &ReadOptions,
-    _: (),
-) -> BinResult<String> {
+#[binrw::parser(reader)]
+pub fn parse_lf_terminated_string() -> BinResult<String> {
     let pos = reader.seek(SeekFrom::Current(0))?;
 
     String::from_utf8(
@@ -60,11 +47,8 @@ pub fn parse_lf_terminated_string<R: Read + Seek>(
     })
 }
 
-pub fn parse_null_terminated_euc_kr_string<R: Read + Seek>(
-    reader: &mut R,
-    _options: &ReadOptions,
-    _: (),
-) -> BinResult<String> {
+#[binrw::parser(reader)]
+pub fn parse_null_terminated_euc_kr_string() -> BinResult<String> {
     let bytes: Vec<u8> = reader
         .bytes()
         .filter_map(Result::ok)

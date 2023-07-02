@@ -27,12 +27,12 @@ pub struct Header {
 
     #[br(assert(nhn == "NHN-AG"))]
     #[br(map = |x: NullString| x.to_string())]
-    #[bw(map = |x: &String| NullString::from_string(x.clone()))]
+    #[bw(map = |x: &String| NullString::from(x.clone()))]
     pub nhn: String,
 
     #[br(assert(jc == "jc"))]
     #[br(map = |x: NullString| x.to_string())]
-    #[bw(map = |x: &String| NullString::from_string(x.clone()))]
+    #[bw(map = |x: &String| NullString::from(x.clone()))]
     pub jc: String,
 }
 

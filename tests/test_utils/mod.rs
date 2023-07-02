@@ -5,11 +5,15 @@ use std::{
 
 use binrw::{BinRead, BinReaderExt, BinWrite, BinWriterExt};
 
-pub fn test_full_rewrite<S: BinWrite + BinRead>(
+pub fn test_full_rewrite<'ra, 'wa, S: BinWrite + BinRead>(
     path: &str,
-    read_args: <S as BinRead>::Args,
-    write_args: <S as BinWrite>::Args,
-) -> anyhow::Result<S> {
+    read_args: <S as BinRead>::Args<'ra>,
+    write_args: <S as BinWrite>::Args<'wa>,
+) -> anyhow::Result<S>
+where
+    <S as BinRead>::Args<'ra>: Clone,
+    <S as BinWrite>::Args<'wa>: Clone,
+{
     // Open input file for reading
     let mut in_file = BufReader::new(File::open(path)?);
     // Get file length and seek back to beginning
@@ -28,7 +32,15 @@ pub fn test_full_rewrite<S: BinWrite + BinRead>(
     let mut out_file = Cursor::new(&mut out_buf);
     out_file.write_le_args(&result, write_args)?;
 
-    assert_eq!(in_buf.len(), in_cursor.position() as usize);
+    // std::fs::write("tmp.bin", &out_buf)?;
+
+    assert_eq!(
+        in_buf.len(),
+        in_cursor.position() as usize,
+        "input was {} bytes, cursor stopped at {} bytes",
+        in_buf.len(),
+        in_cursor.position()
+    );
 
     for (i, (in_byte, out_byte)) in in_buf.iter().zip(out_buf.iter()).enumerate() {
         assert_eq!(
