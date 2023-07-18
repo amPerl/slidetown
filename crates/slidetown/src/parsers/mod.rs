@@ -1,4 +1,7 @@
+mod archives;
 mod strings;
+
+pub use archives::EntryOffsets;
 
 #[cfg(feature = "agt")]
 pub mod agt;
