@@ -2,3 +2,4 @@
 Cargo.lock
 *.png
 tmp.bin
+.vscode/
