@@ -6,6 +6,8 @@ use std::{
 use clap::{Parser, Subcommand};
 use slidetown::parsers::lbf;
 
+use crate::nif_obj;
+
 #[derive(Parser)]
 pub struct LbfOpts {
     #[command(subcommand)]
@@ -55,7 +57,7 @@ fn process_obj(obj_opts: ObjOpts) -> anyhow::Result<()> {
     let mut file = File::open(&obj_opts.input_path)?;
     let lbf: lbf::Lbf = lbf::Lbf::parse(&mut file)?;
 
-    let mut obj = nif::collectors::obj::Obj::default();
+    let mut obj = nif_obj::Obj::default();
 
     for block in lbf.blocks {
         for block_object in block.objects {

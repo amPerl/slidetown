@@ -8,6 +8,8 @@ use std::{
 use clap::{Parser, Subcommand};
 use slidetown::parsers::{lf, EntryOffsets};
 
+use crate::nif_obj;
+
 #[derive(Parser)]
 pub struct LfOpts {
     #[command(subcommand)]
@@ -64,7 +66,7 @@ fn process_obj(obj_opts: ObjOpts) -> anyhow::Result<()> {
     let mut file = File::open(&obj_opts.input_path)?;
     let lf: lf::Lf = lf::Lf::read_without_data(&mut file)?;
 
-    let mut obj = nif::collectors::obj::Obj::default();
+    let mut obj = nif_obj::Obj::default();
 
     for block in lf.blocks {
         file.seek(SeekFrom::Start(block.file_offset as u64))?;

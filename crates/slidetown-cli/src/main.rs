@@ -10,6 +10,8 @@ mod lof;
 mod loi;
 mod world;
 
+pub mod nif_obj;
+
 #[derive(Parser)]
 #[command(version = env!("CARGO_PKG_VERSION"), author = "amPerl")]
 struct Opts {
