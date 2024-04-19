@@ -1,4 +1,5 @@
 use std::{
+    collections::HashMap,
     convert::TryInto,
     fs::File,
     io::{BufWriter, Cursor, Read, Seek, SeekFrom, Write},
@@ -7,6 +8,8 @@ use std::{
 
 use clap::{Parser, Subcommand};
 use slidetown::parsers::{lof, EntryOffsets};
+
+use crate::nif_obj::Obj;
 
 #[derive(Parser)]
 pub struct LofOpts {
@@ -24,6 +27,9 @@ enum Command {
 
     #[command(about = "pack model table nifs using manifest")]
     Pack(PackOpts),
+
+    #[command(about = "unpack model table nifs into obj files")]
+    Obj(ObjOpts),
 
     #[command(about = "export preview gltf with model table nifs")]
     Gltf(GltfOpts),
@@ -145,6 +151,67 @@ fn process_pack(pack_opts: PackOpts) -> anyhow::Result<()> {
 }
 
 #[derive(Parser)]
+struct ObjOpts {
+    /// input file
+    #[arg(short, long)]
+    input_path: String,
+
+    /// output directory
+    #[arg(short, long)]
+    output_dir: String,
+}
+
+pub fn process_obj_inner(input_path: &str) -> anyhow::Result<HashMap<u32, Obj>> {
+    let mut file = File::open(&input_path)?;
+    let lof: lof::Lof = lof::Lof::read_without_data(&mut file)?;
+
+    let mut models = HashMap::new();
+
+    for model in lof.models {
+        file.seek(SeekFrom::Start(model.file_offset as u64))?;
+
+        let mut nif_buf = vec![0u8; model.file_length as usize];
+        file.read_exact(&mut nif_buf)?;
+
+        let mut nif_cursor = Cursor::new(nif_buf);
+
+        let nif = match nif::Nif::parse(&mut nif_cursor) {
+            Ok(nif) => nif,
+            Err(e) => {
+                println!(
+                    "Failed to parse NIF for model index {}: {:?}",
+                    model.index, e
+                );
+                continue;
+            }
+        };
+
+        let mut obj = Obj::default();
+        obj.visit_nif(&nif, Some(format!("Model{}", model.index)));
+
+        models.insert(model.index, obj);
+    }
+
+    Ok(models)
+}
+
+fn process_obj(obj_opts: ObjOpts) -> anyhow::Result<()> {
+    let models = process_obj_inner(&obj_opts.input_path)?;
+
+    let obj_dir = Path::new(&obj_opts.output_dir);
+    std::fs::create_dir_all(obj_dir).expect("Could not create output directory");
+
+    for (model_index, model) in models {
+        let obj_path = obj_dir.join(format!("{}.obj", model_index));
+        let mtl_path = obj_path.with_extension("mtl");
+
+        model.write_to_files(obj_path, mtl_path)?;
+    }
+
+    Ok(())
+}
+
+#[derive(Parser)]
 struct GltfOpts {
     /// input file
     #[arg(short, long)]
@@ -213,6 +280,7 @@ pub fn process_lof(lof_opts: LofOpts) -> anyhow::Result<()> {
         Command::Info(info_opts) => process_info(info_opts),
         Command::Unpack(unpack_opts) => process_unpack(unpack_opts),
         Command::Pack(pack_opts) => process_pack(pack_opts),
+        Command::Obj(obj_opts) => process_obj(obj_opts),
         Command::Gltf(gltf_opts) => process_gltf(gltf_opts),
     }
 }

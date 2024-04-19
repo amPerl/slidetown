@@ -62,6 +62,6 @@ fn main() -> anyhow::Result<()> {
         }
     };
 
-    println!("Done in {}ms", before_process.elapsed().as_millis());
+    eprintln!("Done in {}ms", before_process.elapsed().as_millis());
     result
 }

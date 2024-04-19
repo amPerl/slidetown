@@ -203,6 +203,9 @@ impl Obj {
         }
 
         for &child_ref in ni_node.child_refs.iter() {
+            if child_ref.0 < 0 {
+                continue;
+            }
             let child = child_ref.get(&nif.blocks).expect("invalid child ref");
 
             match child {

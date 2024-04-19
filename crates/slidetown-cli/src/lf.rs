@@ -39,11 +39,20 @@ struct InfoOpts {
     /// input file
     #[arg(short, long)]
     input_path: String,
+
+    /// only output block count
+    #[arg(short, long, default_value = "false")]
+    blocks: bool,
 }
 
 fn process_info(info_opts: InfoOpts) -> anyhow::Result<()> {
     let mut file = File::open(&info_opts.input_path)?;
     let lf: lf::Lf = lf::Lf::read_without_data(&mut file)?;
+
+    if info_opts.blocks {
+        println!("{}", lf.block_count);
+        return Ok(());
+    }
 
     println!("Dimensions: {}x{}", lf.size_x, lf.size_y);
     println!("Block count: {}", lf.block_count);
