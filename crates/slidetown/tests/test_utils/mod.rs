@@ -5,7 +5,7 @@ use std::{
 
 use binrw::{BinRead, BinReaderExt, BinWrite, BinWriterExt};
 
-pub fn test_full_rewrite<'ra, 'wa, S: BinWrite + BinRead>(
+pub fn test_full_rewrite<'ra, 'wa, S: BinWrite + BinRead + std::fmt::Debug>(
     path: &str,
     read_args: <S as BinRead>::Args<'ra>,
     write_args: <S as BinWrite>::Args<'wa>,
@@ -13,7 +13,6 @@ pub fn test_full_rewrite<'ra, 'wa, S: BinWrite + BinRead>(
 where
     <S as BinRead>::Args<'ra>: Clone,
     <S as BinWrite>::Args<'wa>: Clone,
-    S: std::fmt::Debug,
 {
     // Open input file for reading
     let mut in_file = BufReader::new(File::open(path)?);

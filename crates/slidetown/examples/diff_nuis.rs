@@ -4,7 +4,7 @@ use std::{
 };
 
 fn collect_local_paths(local_dir: &Path) -> Vec<PathBuf> {
-    walkdir::WalkDir::new(&local_dir)
+    walkdir::WalkDir::new(local_dir)
         .contents_first(true)
         .sort_by(|a, b| {
             let a_file = a.file_type().is_file();

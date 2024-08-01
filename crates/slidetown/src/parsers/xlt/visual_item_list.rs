@@ -1,8 +1,8 @@
-use std::str::FromStr;
-
-use anyhow::Context;
+#![allow(clippy::get_first)]
 
 use super::Xlt;
+use anyhow::Context;
+use std::str::FromStr;
 
 #[derive(Debug, Clone)]
 pub struct VisualItemList {
@@ -277,7 +277,8 @@ impl VisualItemListEntry {
             .take_while(|s| !s.is_empty())
             .enumerate()
             .filter_map(|(i, s)| s.parse().map(|n: usize| (i, n)).ok())
-            .filter_map(|(i, n)| (n != 0).then(|| i))
+            .filter(|&(_i, n)| (n != 0))
+            .map(|(i, _n)| i)
             .collect();
         Ok(Self {
             category,

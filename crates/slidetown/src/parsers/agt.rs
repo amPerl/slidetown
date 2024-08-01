@@ -54,7 +54,6 @@ impl Entry {
         entry_count: u32,
     ) -> anyhow::Result<Vec<Entry>> {
         let entries = (0..entry_count)
-            .into_iter()
             .map(|_| reader.read_le::<Entry>())
             .collect::<Result<Vec<Entry>, _>>()?;
 

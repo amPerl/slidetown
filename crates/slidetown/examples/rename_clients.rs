@@ -22,7 +22,7 @@ fn rename_client(client_dir_path: &Path) -> anyhow::Result<()> {
     let mut latest_file: Option<(String, DateTime<Utc>)> = None;
     let mut locales = Vec::new();
 
-    for dir in std::fs::read_dir(&client_dir_path)?.filter_map(Result::ok) {
+    for dir in std::fs::read_dir(client_dir_path)?.filter_map(Result::ok) {
         let dir_path = dir.path();
         let dir_path_str = dir_path.file_name().unwrap().to_string_lossy();
         let dir_path_str_lower = dir_path_str.to_lowercase();
@@ -102,7 +102,7 @@ fn rename_client(client_dir_path: &Path) -> anyhow::Result<()> {
     if old_file_name != new_file_name {
         println!("Renaming:\n\t{}\nto\t{}", old_file_name, new_file_name);
         let new_file_path = client_dir_path.with_file_name(new_file_name);
-        std::fs::rename(&client_dir_path, new_file_path)?;
+        std::fs::rename(client_dir_path, new_file_path)?;
     }
 
     Ok(())
@@ -140,7 +140,7 @@ fn is_junk_file(path: &str) -> bool {
 }
 
 fn collect_local_paths(local_dir: &Path) -> Vec<PathBuf> {
-    walkdir::WalkDir::new(&local_dir)
+    walkdir::WalkDir::new(local_dir)
         .contents_first(true)
         .sort_by(|a, b| {
             let a_file = a.file_type().is_file();

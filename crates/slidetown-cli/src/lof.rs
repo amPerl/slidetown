@@ -43,7 +43,7 @@ struct InfoOpts {
 }
 
 fn process_info(info_opts: InfoOpts) -> anyhow::Result<()> {
-    let mut file = File::open(&info_opts.input_path)?;
+    let mut file = File::open(info_opts.input_path)?;
     let lof: lof::Lof = lof::Lof::read_without_data(&mut file)?;
 
     println!("Model count: {}", lof.models.len());
@@ -133,7 +133,7 @@ fn process_pack(pack_opts: PackOpts) -> anyhow::Result<()> {
     for (model, &header_offset) in lof_archive.models.iter().zip(offsets.borrow().iter()) {
         let model_file_path = input_path.with_file_name("").join(&model.file_name);
 
-        let file_offset = out_file.seek(SeekFrom::Current(0))? as u32;
+        let file_offset = out_file.stream_position()? as u32;
 
         let mut model_file =
             File::open(model_file_path).expect("Failed to open model for writing into lof");
@@ -162,7 +162,7 @@ struct ObjOpts {
 }
 
 pub fn process_obj_inner(input_path: &str) -> anyhow::Result<HashMap<u32, Obj>> {
-    let mut file = File::open(&input_path)?;
+    let mut file = File::open(input_path)?;
     let lof: lof::Lof = lof::Lof::read_without_data(&mut file)?;
 
     let mut models = HashMap::new();
@@ -232,7 +232,7 @@ pub fn process_gltf_inner(
         nif::collectors::gltf::json::Index<nif::collectors::gltf::json::Node>,
     >,
 )> {
-    let mut file = File::open(&input_path)?;
+    let mut file = File::open(input_path)?;
     let lof: lof::Lof = lof::Lof::read_without_data(&mut file)?;
 
     let mut gltf = nif::collectors::gltf::Gltf::new();

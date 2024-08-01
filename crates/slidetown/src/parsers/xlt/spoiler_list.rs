@@ -25,7 +25,7 @@ impl SpoilerList {
             .next()
             .context("expected spoiler list header to be on row 3")?;
         let mut entries = Vec::new();
-        for row in row_iter.take_while(|r| r.get(0).is_some() && !r[0].trim().is_empty()) {
+        for row in row_iter.take_while(|r| r.first().is_some() && !r[0].trim().is_empty()) {
             let entry = SpoilerListEntry::from_xlt_row(row)
                 .context("failed to parse spoiler list entry")?;
             entries.push(entry);

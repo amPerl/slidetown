@@ -1,5 +1,4 @@
 use binrw::io::{Read, Seek, Write};
-use std::io::SeekFrom;
 
 pub struct XorReader<'cipher, 'reader, T: Read + Seek> {
     reader: &'reader mut T,
@@ -10,7 +9,7 @@ pub struct XorReader<'cipher, 'reader, T: Read + Seek> {
 
 impl<'cipher, 'reader, T: Read + Seek> XorReader<'cipher, 'reader, T> {
     pub fn new(reader: &'reader mut T, cipher: &'cipher [u8], cipher_offset: usize) -> Self {
-        let pos: u64 = reader.seek(SeekFrom::Current(0)).unwrap();
+        let pos: u64 = reader.stream_position().unwrap();
         Self {
             reader,
             pos,

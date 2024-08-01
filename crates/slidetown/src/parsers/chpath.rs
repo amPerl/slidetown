@@ -1,3 +1,5 @@
+#![allow(unused_variables)]
+
 use binrw::{
     binrw,
     io::{Read, Seek, Write},

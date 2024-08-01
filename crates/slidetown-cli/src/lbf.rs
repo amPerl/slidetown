@@ -34,7 +34,7 @@ struct InfoOpts {
 }
 
 fn process_info(info_opts: InfoOpts) -> anyhow::Result<()> {
-    let mut file = File::open(&info_opts.input_path)?;
+    let mut file = File::open(info_opts.input_path)?;
     let header: lbf::Header = lbf::Header::parse(&mut file)?;
 
     println!("Block count: {}", header.block_count);

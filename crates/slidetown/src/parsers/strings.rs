@@ -1,13 +1,12 @@
 #![allow(dead_code)]
 
 use encoding_rs::EUC_KR;
-use std::io::SeekFrom;
 
 use binrw::{io::Read, BinRead, BinResult, BinWrite};
 
 #[binrw::parser(reader, endian)]
 pub fn read_int_prefixed_string() -> BinResult<String> {
-    let pos = reader.seek(SeekFrom::Current(0))?;
+    let pos = reader.stream_position()?;
     let count = u32::read_options(reader, endian, ())?;
 
     String::from_utf8(
@@ -18,7 +17,7 @@ pub fn read_int_prefixed_string() -> BinResult<String> {
             .collect(),
     )
     .map_err(|e| binrw::Error::Custom {
-        pos: pos as u64,
+        pos,
         err: Box::new(e),
     })
 }
@@ -32,7 +31,7 @@ pub fn write_int_prefixed_string(value: &String) -> BinResult<()> {
 
 #[binrw::parser(reader)]
 pub fn parse_lf_terminated_string() -> BinResult<String> {
-    let pos = reader.seek(SeekFrom::Current(0))?;
+    let pos = reader.stream_position()?;
 
     String::from_utf8(
         reader
@@ -42,7 +41,7 @@ pub fn parse_lf_terminated_string() -> BinResult<String> {
             .collect(),
     )
     .map_err(|e| binrw::Error::Custom {
-        pos: pos as u64,
+        pos,
         err: Box::new(e),
     })
 }

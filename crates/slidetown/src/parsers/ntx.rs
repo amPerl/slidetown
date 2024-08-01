@@ -1,7 +1,9 @@
+#![allow(unused_variables)]
+
 use binrw::{binread, binrw, helpers::until_eof, NullString};
 
 #[binread]
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub enum NtxVersion {
     New {
         #[br(temp)]

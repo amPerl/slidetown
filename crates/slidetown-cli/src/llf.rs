@@ -34,7 +34,7 @@ struct InfoOpts {
 }
 
 fn process_info(info_opts: InfoOpts) -> anyhow::Result<()> {
-    let mut file = File::open(&info_opts.input_path)?;
+    let mut file = File::open(info_opts.input_path)?;
     let llf: llf::Llf = llf::Llf::read(&mut file)?;
 
     println!("Block count: {}", llf.blocks.len());

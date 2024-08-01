@@ -36,14 +36,14 @@ static SPOOKY_KEY: &[u8] = &[
 ];
 
 fn process_info(info_opts: InfoOpts) -> anyhow::Result<()> {
-    let mut file = File::open(&info_opts.input_path)?;
+    let mut file = File::open(info_opts.input_path)?;
     let header = agt::Header::parse(&mut file)?;
 
     let entry_count = header.file_count as usize;
     let max_entry_path_length = 260;
     let max_entry_size = 4 * 4 + max_entry_path_length;
 
-    let entries_buffer_size = (entry_count * max_entry_size) as usize;
+    let entries_buffer_size = entry_count * max_entry_size;
     let mut entries_buffer = vec![0u8; entries_buffer_size];
 
     file.seek(SeekFrom::Start(32))?;

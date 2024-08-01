@@ -382,11 +382,8 @@ impl Obj {
                     .get(&nif.blocks)
                     .expect("invalid property ref");
 
-                match source {
-                    Block::NiSourceTexture(source_texture) => {
-                        return self.visit_source_texture(source_texture);
-                    }
-                    _ => {}
+                if let Block::NiSourceTexture(source_texture) = source {
+                    return self.visit_source_texture(source_texture);
                 }
             }
 

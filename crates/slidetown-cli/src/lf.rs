@@ -46,7 +46,7 @@ struct InfoOpts {
 }
 
 fn process_info(info_opts: InfoOpts) -> anyhow::Result<()> {
-    let mut file = File::open(&info_opts.input_path)?;
+    let mut file = File::open(info_opts.input_path)?;
     let lf: lf::Lf = lf::Lf::read_without_data(&mut file)?;
 
     if info_opts.blocks {
@@ -227,7 +227,7 @@ fn process_pack(pack_opts: PackOpts) -> anyhow::Result<()> {
     for (block, &header_offset) in lf_archive.blocks.iter().zip(offsets.borrow().iter()) {
         let block_file_path = input_path.with_file_name(format!("{}.nif", block.index));
 
-        let file_offset = out_file.seek(SeekFrom::Current(0))? as u32;
+        let file_offset = out_file.stream_position()? as u32;
 
         let mut block_file = File::open(block_file_path)?;
         let file_length = std::io::copy(&mut block_file, &mut out_file)? as u32;

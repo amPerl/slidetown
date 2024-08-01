@@ -1,8 +1,8 @@
-use std::str::FromStr;
-
-use anyhow::Context;
+#![allow(clippy::get_first)]
 
 use super::Xlt;
+use anyhow::Context;
+use std::str::FromStr;
 
 #[derive(Debug, Clone)]
 pub struct VehicleList {

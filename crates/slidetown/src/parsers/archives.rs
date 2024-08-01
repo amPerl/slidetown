@@ -1,4 +1,4 @@
-use std::{cell::RefCell, io::SeekFrom, rc::Rc};
+use std::{cell::RefCell, rc::Rc};
 
 use binrw::BinWrite;
 
@@ -10,7 +10,7 @@ pub(crate) fn record_entry_offset(
     offsets: Option<EntryOffsets>,
 ) -> binrw::BinResult<()> {
     if let Some(entry_offsets) = offsets {
-        let pos = writer.seek(SeekFrom::Current(0))?;
+        let pos = writer.stream_position()?;
         entry_offsets.borrow_mut().push(pos);
     }
     value.write_options(writer, endian, ())

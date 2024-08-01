@@ -1,3 +1,5 @@
+#![allow(clippy::get_first)]
+
 use anyhow::Context;
 use quick_xml::{
     events::{attributes::Attribute, BytesStart, Event},

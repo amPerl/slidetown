@@ -166,7 +166,7 @@ impl AgtBuilder {
 
         for (new_entry_path, entry_source) in self.entry_sources.iter() {
             // Record location where we're going to write this entry
-            entry_offsets.push(writer.seek(SeekFrom::Current(0))?);
+            entry_offsets.push(writer.stream_position()?);
             // Create an incomplete entry, store the chunk count and write the entry
             let entry = entry_source.entry(new_entry_path.to_owned());
             chunk_counts.push(entry.chunk_count);
@@ -183,7 +183,7 @@ impl AgtBuilder {
             .zip(chunk_counts.into_iter())
         {
             // Record the position and skip the chunk lengths
-            let data_offset = writer.seek(SeekFrom::Current(0))?;
+            let data_offset = writer.stream_position()?;
             data_offsets.push(data_offset);
             writer.seek(SeekFrom::Current(entry_chunks_count as i64 * 2))?;
 
@@ -206,7 +206,7 @@ impl AgtBuilder {
                 }
             }
             // Backfill chunk header then return to position
-            let post_data_offset = writer.seek(SeekFrom::Current(0))?;
+            let post_data_offset = writer.stream_position()?;
             writer.seek(SeekFrom::Start(data_offset))?;
             writer.write_le(&entry_chunks_lengths)?;
             writer.seek(SeekFrom::Start(post_data_offset))?;

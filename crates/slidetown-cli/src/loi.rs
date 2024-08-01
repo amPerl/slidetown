@@ -36,7 +36,7 @@ struct InfoOpts {
 }
 
 fn process_info(info_opts: InfoOpts) -> anyhow::Result<()> {
-    let mut file = File::open(&info_opts.input_path)?;
+    let mut file = File::open(info_opts.input_path)?;
     let loi: loi::Loi = loi::Loi::read(&mut file, info_opts.total_block_count)?;
 
     println!("Block count: {}", loi.blocks.len());
