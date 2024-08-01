@@ -73,7 +73,7 @@ fn process_obj(obj_opts: ObjOpts) -> anyhow::Result<()> {
                 Err(e) => {
                     println!(
                         "Failed to parse NIF for block index {} unk {}: {:?}",
-                        block_object.index, block_object.unk, e
+                        block_object.block_index, block_object.unk, e
                     );
                     continue;
                 }
@@ -83,7 +83,7 @@ fn process_obj(obj_opts: ObjOpts) -> anyhow::Result<()> {
                 &nif,
                 Some(format!(
                     "Block{}Object{}",
-                    block_object.index, block_object.unk
+                    block_object.block_index, block_object.unk
                 )),
             );
         }
@@ -128,7 +128,7 @@ fn process_gltf(gltf_opts: GltfOpts) -> anyhow::Result<()> {
                 Err(e) => {
                     println!(
                         "Failed to parse NIF for block index {} unk {}: {:?}",
-                        block_object.index, block_object.unk, e
+                        block_object.block_index, block_object.unk, e
                     );
                     continue;
                 }
@@ -137,7 +137,10 @@ fn process_gltf(gltf_opts: GltfOpts) -> anyhow::Result<()> {
             gltf.visit_nif(
                 &nif,
                 Some("Block Objects"),
-                &format!("Block{}Object{}", block_object.index, block_object.unk),
+                &format!(
+                    "Block{}Object{}",
+                    block_object.block_index, block_object.unk
+                ),
             );
         }
     }

@@ -15,8 +15,12 @@ pub mod lbf;
 pub mod levelmodifier;
 #[cfg(feature = "lf")]
 pub mod lf;
+#[cfg(feature = "lgf")]
+pub mod lgf;
 #[cfg(feature = "lif")]
 pub mod lif;
+#[cfg(feature = "llf")]
+pub mod llf;
 #[cfg(feature = "lof")]
 pub mod lof;
 #[cfg(feature = "loi")]

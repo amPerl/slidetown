@@ -5,11 +5,8 @@ use binrw::{
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, PartialEq, BinRead, Serialize, Deserialize)]
-#[br(magic = b"LBF\0kjc\0")]
+#[br(magic = b"LBF\0kjc\0ag\0\0")]
 pub struct Header {
-    pub unknown1: u32,
-
-    #[serde(skip)]
     pub version_date: u32,
 
     pub unknown2: u32,
@@ -28,7 +25,7 @@ pub struct Block {
 #[derive(Debug, PartialEq, BinRead, Serialize, Deserialize)]
 pub struct BlockObject {
     pub unk: u32,
-    pub index: u32,
+    pub block_index: u32,
 
     #[serde(skip)]
     pub file_offset: u32,
