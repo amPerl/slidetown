@@ -6,6 +6,8 @@ mod agt;
 mod lbf;
 mod levelmodifier;
 mod lf;
+mod lgf;
+mod llf;
 mod lof;
 mod loi;
 mod world;
@@ -31,6 +33,12 @@ enum Archive {
     /// LF terrain block objects
     Lbf(lbf::LbfOpts),
 
+    /// LLF terrain lane decals
+    Llf(llf::LlfOpts),
+
+    /// LGF terrain guardrails
+    Lgf(lgf::LgfOpts),
+
     /// LOF model table
     Lof(lof::LofOpts),
 
@@ -54,6 +62,8 @@ fn main() -> anyhow::Result<()> {
         Archive::Agt(agt_opts) => agt::process_agt(agt_opts),
         Archive::Lf(lf_opts) => lf::process_lf(lf_opts),
         Archive::Lbf(lbf_opts) => lbf::process_lbf(lbf_opts),
+        Archive::Llf(llf_opts) => llf::process_llf(llf_opts),
+        Archive::Lgf(lgf_opts) => lgf::process_lgf(lgf_opts),
         Archive::Lof(lof_opts) => lof::process_lof(lof_opts),
         Archive::Loi(loi_opts) => loi::process_loi(loi_opts),
         Archive::World(world_opts) => world::process_world(world_opts),
