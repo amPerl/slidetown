@@ -12,7 +12,7 @@ mod lof;
 mod loi;
 mod world;
 
-pub mod nif_obj;
+pub mod util;
 
 #[derive(Parser)]
 #[command(version = env!("CARGO_PKG_VERSION"), author = "amPerl")]

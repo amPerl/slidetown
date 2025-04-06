@@ -11,7 +11,7 @@ use nif::{
     glam, Nif,
 };
 
-#[derive(Default, Debug, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct ObjMaterial {
     pub ambient_color: Color3,
     pub diffuse_color: Color3,
@@ -19,6 +19,31 @@ pub struct ObjMaterial {
     pub alpha: f32,
     pub specular_exponent: f32, // glossiness
     pub diffuse_texture_map: Option<String>,
+}
+
+impl Default for ObjMaterial {
+    fn default() -> Self {
+        Self {
+            ambient_color: Color3 {
+                r: 1.0,
+                g: 1.0,
+                b: 1.0,
+            },
+            diffuse_color: Color3 {
+                r: 1.0,
+                g: 1.0,
+                b: 1.0,
+            },
+            specular_color: Color3 {
+                r: 0.0,
+                g: 0.0,
+                b: 0.0,
+            },
+            alpha: 1.0,
+            specular_exponent: 4.0,
+            diffuse_texture_map: None,
+        }
+    }
 }
 
 #[derive(Default, Debug)]
@@ -269,7 +294,10 @@ impl Obj {
         let mut mesh = obj_shape_data.unwrap();
 
         let mut diffuse_texture_map = None;
-        let mut material = None;
+        let mut material = Some((
+            format!("{}_NiMaterialProperty{}", label, "_DefaultGenerated"),
+            ObjMaterial::default(),
+        ));
 
         for &property_ref in tri_shape.property_refs.iter() {
             let property = property_ref.get(&nif.blocks).expect("invalid property ref");
@@ -402,6 +430,9 @@ impl Obj {
             source_texture
                 .file_name
                 .value
+                .split("/")
+                .last()
+                .unwrap()
                 .replace(".tga", ".dds")
                 .replace(".TGA", ".dds")
                 .replace(".bmp", ".dds")

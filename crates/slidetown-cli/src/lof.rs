@@ -9,7 +9,7 @@ use std::{
 use clap::{Parser, Subcommand};
 use slidetown::parsers::{lof, EntryOffsets};
 
-use crate::nif_obj::Obj;
+use crate::util::nif_obj::Obj;
 
 #[derive(Parser)]
 pub struct LofOpts {

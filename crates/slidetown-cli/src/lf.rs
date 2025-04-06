@@ -8,7 +8,7 @@ use std::{
 use clap::{Parser, Subcommand};
 use slidetown::parsers::{lf, EntryOffsets};
 
-use crate::nif_obj;
+use crate::util::nif_obj;
 
 #[derive(Parser)]
 pub struct LfOpts {
