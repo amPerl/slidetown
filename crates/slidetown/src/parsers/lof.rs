@@ -23,9 +23,9 @@ pub struct Model {
     pub index: u32,
     pub unknown1: u32,
     pub unknown2: u32,
-    pub unknown3: u32, // since 20061216
-    pub unknown4: u32,
-    pub unknown5: u32,
+    pub unknown3: u32, // since 20061216, almost inverse of column N
+    pub lighting: u32, // turns on light at night?
+    pub effect_id: u32,
 
     #[br(parse_with = strings::parse_null_terminated_euc_kr_string )]
     #[bw(map = strings::string_to_null_terminated_euc_kr)]
@@ -35,9 +35,9 @@ pub struct Model {
     #[bw(map = strings::string_to_null_terminated_euc_kr)]
     pub file_name: String,
 
-    pub unknown6: f32,
-    pub unknown7: u32, // since 20061216
-    pub unknown8: u32, // since 20061216
+    pub animation_duration: f32,
+    pub r#loop: u32,        // since 20061216
+    pub random_offset: u32, // since 20061216
     #[bw(args(entry_offsets), write_with = record_entry_offset)]
     #[serde(skip)]
     pub file_offset: u32,
@@ -52,7 +52,7 @@ pub struct Lof {
     pub header: Header,
     #[bw(calc = models.len() as u32)]
     pub model_count: u32,
-    pub unknown1: u32,
+    pub max_file_size: u32,
     #[br(count = model_count)]
     #[bw(args(entry_offsets))]
     pub models: Vec<Model>,

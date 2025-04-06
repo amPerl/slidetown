@@ -31,7 +31,7 @@ pub struct BlockObject {
     pub scale: f32,
     pub unknown8: u32,
     pub unknown9: u32,
-    pub object_extra_index: i32,
+    pub collider_index: i32,
     pub unknown11: u32,
 }
 
@@ -47,16 +47,18 @@ pub struct Block {
 
 #[binrw]
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct ObjectExtra {
+pub struct Collider {
     pub object_index: u32,
-    pub object_extra_index: u32,
-    pub unknown3: u32,
+    pub collider_index: u32,
+    pub r#type: u32, // 1-2 = Box, 4 = Capsule
     pub position: Vec3f,
     pub rotation: Mat3x3,
-    pub unknown4: (f32, f32, f32),
-    pub unknown5: f32,
+    pub size: Vec3f,   // Box dimensions when 1-2
+    pub unknown5: f32, // Capsule height/2 when 4
 }
 
+// these are something to do with animated objects or ones that produce sound.
+// they are out of bounds, so it can't be collision-related. values are object ids
 #[binrw]
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct UnknownObject2 {
@@ -68,40 +70,32 @@ pub struct UnknownObject2 {
 
 #[binrw]
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct UnknownObject3 {
-    pub unknown1: u32,
+pub struct UnknownBlock3 {
+    pub block_index: u32,
     #[bw(calc = items.len() as u32)]
     pub unknown_count: u32,
     #[br(count = unknown_count)]
-    pub items: Vec<u32>,
+    pub items: Vec<u32>, // no idea. always empty in mp main loi
+}
+
+// mainly lampposts, starting from MI
+#[binrw]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct LampBlock {
+    #[bw(calc = lamp_ids.len() as u32)]
+    pub count: u32,
+    pub unknown_3_per_lamp_id: u32, // 3 * count
+    #[br(count = count)]
+    pub lamp_ids: Vec<u32>,
 }
 
 #[binrw]
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct UnknownObject3Section {
-    #[bw(calc = unknown_objects_3.len() as u32)]
-    pub unknown_object_3_count: u32,
-    #[br(count = unknown_object_3_count)]
-    pub unknown_objects_3: Vec<UnknownObject3>,
-}
-
-#[binrw]
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct UnknownObject4 {
-    #[bw(calc = items.len() as u32)]
-    pub unknown_count: u32,
-    pub unknown1: u32,
-    #[br(count = unknown_count)]
-    pub items: Vec<u32>,
-}
-
-#[binrw]
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct UnknownObject5 {
-    #[bw(calc = object_indices.len() as u32)]
-    pub object_count: u32,
-    #[br(count = object_count)]
-    pub object_indices: Vec<u32>,
+pub struct TrafficLightBlock {
+    #[bw(calc = traffic_light_ids.len() as u32)]
+    pub count: u32,
+    #[br(count = count)]
+    pub traffic_light_ids: Vec<u32>,
 }
 
 #[binrw]
@@ -115,21 +109,24 @@ pub struct Loi {
     #[br(count = block_count)]
     pub blocks: Vec<Block>,
 
-    #[bw(calc = object_extras.len() as u32)]
-    pub object_extra_count: u32,
-    #[br(count = object_extra_count)]
-    pub object_extras: Vec<ObjectExtra>,
+    #[bw(calc = colliders.len() as u32)]
+    pub collider_count: u32,
+    #[br(count = collider_count)]
+    pub colliders: Vec<Collider>,
 
     #[br(count = total_block_count)]
     pub unknown_objects_2: Vec<UnknownObject2>,
 
-    pub unknown_object_3_section: UnknownObject3Section,
+    #[bw(calc = unknown_blocks_3.len() as u32)]
+    pub unknown_block_3_count: u32,
+    #[br(count = unknown_block_3_count)]
+    pub unknown_blocks_3: Vec<UnknownBlock3>,
 
     #[br(count = total_block_count)]
-    pub unknown_objects_4: Vec<UnknownObject4>,
+    pub lamp_blocks: Vec<LampBlock>,
 
     #[br(count = total_block_count)]
-    pub unknown_objects_5: Vec<UnknownObject5>,
+    pub traffic_light_blocks: Vec<TrafficLightBlock>,
 }
 
 impl Loi {

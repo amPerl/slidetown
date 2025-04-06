@@ -1,4 +1,4 @@
-use std::{fs::File, io::BufWriter, path::Path};
+use std::{collections::HashSet, fs::File, io::BufWriter, path::Path};
 
 use clap::{Parser, Subcommand};
 use slidetown::parsers::loi;
@@ -65,31 +65,70 @@ fn process_info(info_opts: InfoOpts) -> anyhow::Result<()> {
 
     println!("Highest object_index {}", object_indices_max);
 
-    // println!("Blocks with objects:");
-    // for block in loi.blocks.iter() {
-    //     if block.object_count <= 0 {
-    //         continue;
-    //     }
-    //     println!(
-    //         "Block {} with object ids: {:?}",
-    //         block.block_index,
-    //         block
-    //             .objects
-    //             .iter()
-    //             .map(|object| object.object_index)
-    //             .collect::<Vec<u32>>()
-    //     )
-    // }
+    let mut unknown_2_ids = HashSet::new();
+    let mut unknown_3_ids = HashSet::new();
 
-    // for potential_object_index in 0..object_indices_max {
-    //     if object_indices.contains(&potential_object_index) {
-    //         continue;
-    //     }
-    //     println!(
-    //         "Missing object index in sequence: {}",
-    //         potential_object_index
-    //     );
-    // }
+    let ignore_ids = &[84, 146];
+
+    for block in loi.unknown_objects_2 {
+        for id in block.items {
+            let mut skip = false;
+            for block in loi.blocks.iter() {
+                for object in block.objects.iter() {
+                    if object.object_index != id {
+                        continue;
+                    }
+                    if ignore_ids.contains(&object.model_table_index) {
+                        skip = true;
+                        break;
+                    }
+                }
+                if skip {
+                    break;
+                }
+            }
+            if skip {
+                continue;
+            }
+            unknown_2_ids.insert(id);
+        }
+    }
+    for block in loi.unknown_blocks_3 {
+        for id in block.items {
+            let mut skip = false;
+            for block in loi.blocks.iter() {
+                for object in block.objects.iter() {
+                    if object.object_index != id {
+                        continue;
+                    }
+                    if ignore_ids.contains(&object.model_table_index) {
+                        skip = true;
+                        break;
+                    }
+                }
+                if skip {
+                    break;
+                }
+            }
+            if skip {
+                continue;
+            }
+            unknown_3_ids.insert(id);
+        }
+    }
+
+    println!(
+        "ids that are in unknown_3_ids but not in unknown_2_ids: {:?}",
+        unknown_3_ids.difference(&unknown_2_ids)
+    );
+    println!(
+        "ids that are in unknown_2_ids but not in unknown_3_ids: {:?}",
+        unknown_2_ids.difference(&unknown_3_ids)
+    );
+    println!(
+        "ids that are in both: {:?}",
+        unknown_2_ids.union(&unknown_3_ids)
+    );
 
     Ok(())
 }
@@ -107,13 +146,33 @@ struct UnpackOpts {
     /// total block count, as specified by the LF
     #[arg(short, long)]
     total_block_count: usize,
+
+    /// whether to remove blocks that don't have anything in them from the json
+    #[arg(short, long, default_value = "false")]
+    prune: bool,
 }
 
 fn process_unpack(unpack_opts: UnpackOpts) -> anyhow::Result<()> {
     let mut file = File::open(&unpack_opts.input_path).expect("Failed to open source file");
 
-    let loi_archive: loi::Loi = loi::Loi::read(&mut file, unpack_opts.total_block_count)
+    let mut loi_archive: loi::Loi = loi::Loi::read(&mut file, unpack_opts.total_block_count)
         .expect("Failed to parse source file");
+
+    if unpack_opts.prune {
+        loi_archive.blocks.retain(|block| !block.objects.is_empty());
+        loi_archive
+            .unknown_objects_2
+            .retain(|unk2| !unk2.items.is_empty());
+        loi_archive
+            .unknown_blocks_3
+            .retain(|anim| !anim.items.is_empty());
+        loi_archive
+            .lamp_blocks
+            .retain(|lamp| !lamp.lamp_ids.is_empty());
+        loi_archive
+            .traffic_light_blocks
+            .retain(|light| !light.traffic_light_ids.is_empty());
+    }
 
     let out_path = Path::new(&unpack_opts.output_path);
 
