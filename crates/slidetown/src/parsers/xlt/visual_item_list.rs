@@ -163,6 +163,65 @@ pub enum VisualItemCategory {
     GCoinBox = 54,
 }
 
+impl std::fmt::Display for VisualItemCategory {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let category_str = match self {
+            Self::Paint => "Paint",
+            Self::Neon => "Neon",
+            Self::WindowColor => "WindowColor",
+            Self::AeroBumper => "AeroBumper",
+            Self::AeroHood => "AeroHood",
+            Self::AeroKit => "AeroKit",
+            Self::Spoiler => "Spoiler",
+            Self::Tire => "Tire",
+            Self::NumberPlate => "NumberPlate",
+            Self::MufflerFlame => "MufflerFlame",
+            Self::Decal => "Decal",
+            Self::Horn => "Horn",
+            Self::Engine => "Engine",
+            Self::Upgrade => "Upgrade",
+            Self::ExpDrink => "ExpDrink",
+            Self::InventoryExpansion => "InventoryExpansion",
+            Self::MitoDrink => "MitoDrink",
+            Self::RepairGirl => "RepairGirl",
+            Self::PartsBox => "PartsBox",
+            Self::StickerGlue => "StickerGlue",
+            Self::TurboMan => "TurboMan",
+            Self::GarageExtension => "GarageExtension",
+            Self::DoubleUpgrade => "DoubleUpgrade",
+            Self::HalfCharge => "HalfCharge",
+            Self::SetLubeAlpha => "SetLubeAlpha",
+            Self::SetLubeBeta => "SetLubeBeta",
+            Self::MitoPrize => "MitoPrize",
+            Self::ItemDrink => "ItemDrink",
+            Self::PortableModKit => "PortableModKit",
+            Self::CarRental => "CarRental",
+            Self::RentItem => "RentItem",
+            Self::GlossyPaint => "GlossyPaint",
+            Self::UseItem => "UseItem",
+            Self::AutoFillup => "AutoFillup",
+            Self::AutoQuickslot => "AutoQuickslot",
+            Self::NameChange => "NameChange",
+            Self::UpgradeTimed => "UpgradeTimed",
+            Self::AutoDrive => "AutoDrive",
+            Self::BuffDummy => "BuffDummy",
+            Self::PassiveAssist => "PassiveAssist",
+            Self::Hongpao => "Hongpao",
+            Self::CarTransformationEx => "CarTransformationEx",
+            Self::ChannelReplayPass => "ChannelReplayPass",
+            Self::ChannelGhostPass => "ChannelGhostPass",
+            Self::RoofItem => "RoofItem",
+            Self::GlossyTire => "GlossyTire",
+            Self::Package => "Package",
+            Self::DiscountCoupon => "DiscountCoupon",
+            Self::AirDuct => "AirDuct",
+            Self::GachaCoin => "GachaCoin",
+            Self::GCoinBox => "GCoinBox",
+        };
+        write!(f, "{category_str}")
+    }
+}
+
 impl FromStr for VisualItemCategory {
     type Err = anyhow::Error;
 

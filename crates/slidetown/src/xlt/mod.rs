@@ -79,6 +79,16 @@ impl InitConfiguration {
         defaults
     }
 
+    pub fn is_sold_visual_item(&self, visual_item_id: &str) -> bool {
+        self.vshop_item_list
+            .entries
+            .iter()
+            .find(|entry| entry.item_id == visual_item_id)
+            .map(|e| e.sell_stage.trim())
+            .unwrap_or_default()
+            == "1"
+    }
+
     pub fn is_default_visual_item(&self, visual_item_id: &str) -> bool {
         self.vshop_item_list
             .entries
