@@ -2,6 +2,7 @@ use std::io::{Read, Write};
 
 use anyhow::Context;
 
+pub mod pvp_track_info;
 pub mod spoiler_list;
 pub mod tire_list;
 pub mod vehicle_list;

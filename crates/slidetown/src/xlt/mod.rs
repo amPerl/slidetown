@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use crate::parsers::xlt::{
+    pvp_track_info::PvpTrackInfo,
     spoiler_list::{SpoilerList, SpoilerListEntry},
     tire_list::{TireList, TireListEntry},
     vehicle_list::{VehicleKind, VehicleList, VehicleListEntry},
@@ -16,6 +17,7 @@ pub struct InitConfiguration {
     pub vshop_item_list: VShopItemList,
     pub tire_list: TireList,
     pub spoiler_list: SpoilerList,
+    pub pvp_track_info: PvpTrackInfo,
 }
 
 impl InitConfiguration {
@@ -25,6 +27,7 @@ impl InitConfiguration {
         vshop_item_list_xlt: &Xlt,
         tire_list_xlt: &Xlt,
         spoiler_list_xlt: &Xlt,
+        pvp_track_info_xlt: &Xlt,
     ) -> anyhow::Result<Self> {
         Ok(Self {
             vehicle_list: VehicleList::from_xlt(vehicle_list_xlt)?,
@@ -32,6 +35,7 @@ impl InitConfiguration {
             vshop_item_list: VShopItemList::from_xlt(vshop_item_list_xlt)?,
             tire_list: TireList::from_xlt(tire_list_xlt)?,
             spoiler_list: SpoilerList::from_xlt(spoiler_list_xlt)?,
+            pvp_track_info: PvpTrackInfo::from_xlt(pvp_track_info_xlt)?,
         })
     }
 
