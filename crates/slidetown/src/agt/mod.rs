@@ -53,6 +53,12 @@ impl<'cipher, 'reader, T: Read + Seek> AgtReader<'cipher, 'reader, T> {
         let mut result = Vec::new();
 
         for len in chunk_lengths {
+            // Stop at the declared length; trailing chunks may be too short to decompress.
+            // For example, ob_so_1st_batchrender_01.DDS has 360448 bytes in 22 chunks,
+            // followed by a six-byte tail.
+            if result.len() >= entry.decompressed_length as usize {
+                break;
+            }
             let mut compressed_buf = vec![0u8; len as _];
             self.reader.read_exact(&mut compressed_buf)?;
             let mut decoder = ZlibDecoder::new(Cursor::new(compressed_buf));

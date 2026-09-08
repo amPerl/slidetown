@@ -78,13 +78,17 @@ pub struct UnknownBlock3 {
     pub items: Vec<u32>, // no idea. always empty in mp main loi
 }
 
-// mainly lampposts, starting from MI
+/// Lamps in a terrain block and their total model glow-plane count (not light count).
+/// Plane counts vary by model, so `3 * count` fails in mixed-model blocks:
+/// 50 in koinonia, 6 in oros, 2 in cras, and 36 in taipei; none in moonpalace.
+/// Summing model planes matches every moonpalace, koinonia, cras, and oros block,
+/// and 7,776 of taipei's 7,800 blocks.
 #[binrw]
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct LampBlock {
     #[bw(calc = lamp_ids.len() as u32)]
     pub count: u32,
-    pub unknown_3_per_lamp_id: u32, // 3 * count
+    pub glow_planes: u32,
     #[br(count = count)]
     pub lamp_ids: Vec<u32>,
 }
