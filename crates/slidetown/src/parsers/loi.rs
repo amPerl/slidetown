@@ -16,23 +16,33 @@ pub struct Header {
 pub type Vec3f = (f32, f32, f32);
 pub type Mat3x3 = (Vec3f, Vec3f, Vec3f);
 
+/// A model instance placed in the world.
 #[binrw]
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct BlockObject {
+    /// Always zero.
     pub unknown1: u32,
+    /// Always one.
     pub unknown2: u32,
     pub unknown3: f32,
     pub unknown4: f32,
+    /// ID used by colliders and the three trailing lists.
+    /// Sparse, unordered, and unique only within this file; other placement sets may reuse it.
     pub object_index: u32,
+    /// Terrain block containing this object; matches the enclosing block.
     pub block_index: u32,
     pub model_table_index: u32,
     pub position: Vec3f,
     pub rotation: Mat3x3,
+    /// Uniform scale for all three axes.
     pub scale: f32,
     pub unknown8: u32,
+    /// Zero or one.
     pub unknown9: u32,
+    /// Collider group ID, or -1 for no reference. Unreferenced colliders may still exist.
     pub collider_index: i32,
-    pub unknown11: u32,
+    /// Usually zero; otherwise a small positive float.
+    pub unknown11: f32,
 }
 
 #[binrw]
@@ -45,10 +55,14 @@ pub struct Block {
     pub objects: Vec<BlockObject>,
 }
 
+/// A collision shape in world coordinates.
+/// An object's shapes share a `collider_index`, which identifies the group, not the row.
 #[binrw]
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Collider {
+    /// Owning object's `object_index`.
     pub object_index: u32,
+    /// Group ID shared by all of this object's colliders.
     pub collider_index: u32,
     pub r#type: u32, // 1-2 = Box, 4 = Capsule
     pub position: Vec3f,
@@ -57,8 +71,9 @@ pub struct Collider {
     pub unknown5: f32, // Capsule height/2 when 4
 }
 
-// these are something to do with animated objects or ones that produce sound.
-// they are out of bounds, so it can't be collision-related. values are object ids
+/// Animated or sound-producing `object_index` values, grouped by terrain block.
+/// One of three lists with a row per block. IDs may reference objects outside this file,
+/// such as a track referencing its underlying world.
 #[binrw]
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct UnknownObject2 {
@@ -126,9 +141,11 @@ pub struct Loi {
     #[br(count = unknown_block_3_count)]
     pub unknown_blocks_3: Vec<UnknownBlock3>,
 
+    /// Lamp IDs grouped by terrain block.
     #[br(count = total_block_count)]
     pub lamp_blocks: Vec<LampBlock>,
 
+    /// Traffic light IDs grouped by terrain block.
     #[br(count = total_block_count)]
     pub traffic_light_blocks: Vec<TrafficLightBlock>,
 }
