@@ -69,6 +69,26 @@ impl<'cipher, 'reader, T: Read + Seek> AgtReader<'cipher, 'reader, T> {
     }
 }
 
+/// AGT chunk layout: `length / size + 1` chunks.
+/// Empty entries and exact multiples of the chunk size need an empty tail;
+/// rounding up the chunk count would omit it.
+struct Chunking {
+    size: usize,
+    /// Six-byte empty tail: zlib header and empty checksum, with no deflate block.
+    empty: [u8; 6],
+}
+
+impl Chunking {
+    fn count(&self, length: usize) -> u32 {
+        (length / self.size + 1) as u32
+    }
+}
+
+const CHUNK: Chunking = Chunking {
+    size: 16384,
+    empty: [0x78, 0x9c, 0x00, 0x00, 0x00, 0x01],
+};
+
 #[derive(Debug)]
 enum AgtBuilderEntrySource {
     // /// The compressed data for this entry will be copied from an existing AGT file
@@ -100,7 +120,7 @@ impl AgtBuilderEntrySource {
             // },
             AgtBuilderEntrySource::Memory { data } => Entry {
                 chunks_offset: 0,
-                chunk_count: (data.len() as f64 / 16384.0).ceil() as u32,
+                chunk_count: CHUNK.count(data.len()),
                 decompressed_length: data.len() as _,
                 path,
             },
@@ -198,7 +218,7 @@ impl AgtBuilder {
             match entry_source {
                 // AgtBuilderEntrySource::AgtFile { path, entry } => todo!(),
                 AgtBuilderEntrySource::Memory { mut data } => {
-                    for chunk in data.chunks_mut(16384) {
+                    for chunk in data.chunks_mut(CHUNK.size) {
                         let compressed_chunk = {
                             let mut encoder = ZlibEncoder::new(Vec::new(), Compression::default());
                             encoder.write_all(chunk)?;
@@ -208,6 +228,11 @@ impl AgtBuilder {
                         let compressed_len = compressed_chunk.len() as u16;
                         entry_chunks_lengths.push(compressed_len);
                         writer.write_le(&compressed_chunk)?;
+                    }
+                    // Add the empty tail for empty inputs and exact chunk multiples.
+                    while entry_chunks_lengths.len() < entry_chunks_count as usize {
+                        entry_chunks_lengths.push(CHUNK.empty.len() as u16);
+                        writer.write_le(&CHUNK.empty.to_vec())?;
                     }
                 }
             }
