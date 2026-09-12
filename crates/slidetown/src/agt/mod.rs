@@ -6,7 +6,7 @@ use flate2::read::ZlibDecoder;
 use flate2::write::ZlibEncoder;
 use flate2::Compression;
 use std::io::{Cursor, SeekFrom};
-use std::{collections::BTreeMap, io::Write};
+use std::io::Write;
 
 mod cipher;
 
@@ -129,13 +129,15 @@ impl AgtBuilderEntrySource {
 }
 
 pub struct AgtBuilder {
-    entry_sources: BTreeMap<String, AgtBuilderEntrySource>,
+    /// Write entries in insertion order so callers can preserve the original archive order.
+    /// The table order cannot be inferred from entry names.
+    entry_sources: Vec<(String, AgtBuilderEntrySource)>,
 }
 
 impl AgtBuilder {
     pub fn new() -> Self {
         Self {
-            entry_sources: Default::default(),
+            entry_sources: Vec::new(),
         }
     }
 
@@ -169,12 +171,12 @@ impl AgtBuilder {
 
     /// Add an entry from memory
     pub fn add_entry_memory(&mut self, path: String, data: &[u8]) {
-        self.entry_sources.insert(
+        self.entry_sources.push((
             path,
             AgtBuilderEntrySource::Memory {
                 data: data.to_vec(),
             },
-        );
+        ));
     }
 
     pub fn write<W: Write + Seek>(self, writer: &mut W, cipher: &[u8]) -> anyhow::Result<()> {
@@ -205,7 +207,8 @@ impl AgtBuilder {
         // Go through all the entry data sources, compress and write the chunks, then backfill the chunk lengths
         for (entry_source, entry_chunks_count) in self
             .entry_sources
-            .into_values()
+            .into_iter()
+            .map(|(_, source)| source)
             .zip(chunk_counts.into_iter())
         {
             // Record the position and skip the chunk lengths

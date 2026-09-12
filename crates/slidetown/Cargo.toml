@@ -49,7 +49,9 @@ encoding_rs = "0.8.31"
 serde = { version = "1.0.127", features = ["derive"] }
 thiserror = "1.0.26"
 binrw = "0.14.0"
-flate2 = { version = "1.0.24", optional = true }
+# Different deflate implementations produce different chunk sizes and offsets.
+# Repacked archives preserve contents but are not byte-identical.
+flate2 = { version = "1.1.10", optional = true }
 quick-xml = { version = "0.23.1", features = ["encoding"], optional = true }
 
 [dev-dependencies]

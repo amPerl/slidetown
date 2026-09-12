@@ -1,8 +1,10 @@
 use clap::{Parser, Subcommand};
+use slidetown::agt::{AgtBuilder, AgtReader};
 use slidetown::parsers::agt;
 use std::{
     fs::File,
-    io::{Cursor, Read, Seek, SeekFrom},
+    io::{BufWriter, Cursor, Read, Seek, SeekFrom},
+    path::{Path, PathBuf},
 };
 
 #[derive(Parser)]
@@ -17,6 +19,12 @@ pub struct AgtOpts {
 enum Command {
     #[command(about = "display info about archive contents")]
     Info(InfoOpts),
+
+    #[command(about = "write every entry out as a file, with a manifest of their order")]
+    Extract(ExtractOpts),
+
+    #[command(about = "build an archive from a directory an extract wrote")]
+    Pack(PackOpts),
 }
 
 #[derive(Parser)]
@@ -25,6 +33,30 @@ struct InfoOpts {
     #[arg(short, long)]
     input_path: String,
 }
+
+#[derive(Parser)]
+struct ExtractOpts {
+    /// input archive
+    #[arg(short, long)]
+    input_path: String,
+    /// output directory
+    #[arg(short, long)]
+    output_path: String,
+}
+
+#[derive(Parser)]
+struct PackOpts {
+    /// directory created by extract
+    #[arg(short, long)]
+    input_path: String,
+    /// output archive
+    #[arg(short, long)]
+    output_path: String,
+}
+
+/// Extraction manifest: one original entry path per line, in archive order.
+/// Packing uses this to preserve spelling and order, which directory listings cannot recover.
+const MANIFEST: &str = "entries.txt";
 
 static SPOOKY_KEY: &[u8] = &[
     0x01, 0x05, 0x06, 0x02, 0x04, 0x03, 0x07, 0x08, 0x01, 0x05, 0x06, 0x0F, 0x04, 0x03, 0x07, 0x0C,
@@ -76,8 +108,74 @@ fn process_info(info_opts: InfoOpts) -> anyhow::Result<()> {
     Ok(())
 }
 
+/// Map an archive entry path to its extraction path.
+fn beneath(root: &Path, entry: &str) -> PathBuf {
+    let mut at = root.to_path_buf();
+    for part in entry.split(['\\', '/']).filter(|part| !part.is_empty()) {
+        at.push(part);
+    }
+    at
+}
+
+fn process_extract(opts: ExtractOpts) -> anyhow::Result<()> {
+    let root = PathBuf::from(&opts.output_path);
+    let mut file = File::open(&opts.input_path)?;
+    let mut reader = AgtReader::new(&mut file, SPOOKY_KEY);
+    let header = reader.read_header()?;
+    let entries = reader.read_entries(header.file_count)?;
+    println!("{}: {} entries", opts.input_path, entries.len());
+
+    let mut manifest = String::new();
+    let mut written = 0u64;
+    for entry in &entries {
+        let data = reader.read_entry_data(entry)?;
+        let at = beneath(&root, &entry.path);
+        if let Some(parent) = at.parent() {
+            std::fs::create_dir_all(parent)?;
+        }
+        std::fs::write(&at, &data)?;
+        manifest.push_str(&entry.path);
+        manifest.push('\n');
+        written += data.len() as u64;
+    }
+    std::fs::write(root.join(MANIFEST), manifest)?;
+    println!(
+        "  wrote {} files, {:.1} MB, and {MANIFEST}",
+        entries.len(),
+        written as f64 / 1e6
+    );
+    Ok(())
+}
+
+fn process_pack(opts: PackOpts) -> anyhow::Result<()> {
+    let root = PathBuf::from(&opts.input_path);
+    let manifest = std::fs::read_to_string(root.join(MANIFEST))?;
+    let mut builder = AgtBuilder::new();
+    let (mut count, mut read) = (0usize, 0u64);
+    for entry in manifest.lines() {
+        let entry = entry.trim_end_matches('\r');
+        if entry.is_empty() {
+            continue;
+        }
+        let data = std::fs::read(beneath(&root, entry))?;
+        read += data.len() as u64;
+        builder.add_entry_memory(entry.to_string(), &data);
+        count += 1;
+    }
+    let mut out = BufWriter::new(File::create(&opts.output_path)?);
+    builder.write(&mut out, SPOOKY_KEY)?;
+    println!(
+        "{}: packed {count} entries, {:.1} MB",
+        opts.output_path,
+        read as f64 / 1e6
+    );
+    Ok(())
+}
+
 pub fn process_agt(agt_opts: AgtOpts) -> anyhow::Result<()> {
     match agt_opts.cmd {
         Command::Info(info_opts) => process_info(info_opts),
+        Command::Extract(opts) => process_extract(opts),
+        Command::Pack(opts) => process_pack(opts),
     }
 }
