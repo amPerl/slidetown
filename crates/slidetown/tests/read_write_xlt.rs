@@ -128,6 +128,8 @@ fn init_configuration() -> anyhow::Result<()> {
     let tire_list_xlt = Xlt::read(&mut Cursor::new(&tire_list_bytes))?;
     let spoiler_list_bytes = std::fs::read("resources/xlt/SpoilerList_0.22.xlt")?;
     let spoiler_list_xlt = Xlt::read(&mut Cursor::new(&spoiler_list_bytes))?;
+    let pvp_track_info_bytes = std::fs::read("resources/xlt/PvpTrackInfo_0.22.xlt")?;
+    let pvp_track_info_xlt = Xlt::read(&mut Cursor::new(&pvp_track_info_bytes))?;
 
     let init = InitConfiguration::from_xlts(
         &vehicle_list_xlt,
@@ -135,7 +137,14 @@ fn init_configuration() -> anyhow::Result<()> {
         &vshop_item_list_xlt,
         &tire_list_xlt,
         &spoiler_list_xlt,
+        &pvp_track_info_xlt,
     )?;
+
+    // Check the declared count to catch incomplete parsing.
+    assert_eq!(
+        init.pvp_track_info.entries.len(),
+        init.pvp_track_info.meta.track_count
+    );
 
     for vehicle in init.player_vehicles() {
         // eprintln!(
