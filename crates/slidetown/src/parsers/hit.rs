@@ -7,10 +7,33 @@ use serde::{Deserialize, Serialize};
 
 #[binrw]
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
-#[brw(magic = b"hit\0")]
 pub struct Header {
-    #[br(assert(version_date == 20060720, "unexpected version {}", version_date))]
+    #[br(assert(magic.eq_ignore_ascii_case(b"hit\0"), "unexpected magic {:?}", magic))]
+    pub magic: [u8; 4],
+    #[br(assert(
+        version_date == 20051005 || version_date == 20060720 || version_date == 20090629,
+        "unexpected version {}",
+        version_date
+    ))]
     pub version_date: u32,
+}
+
+impl Header {
+    pub fn has_w(&self) -> bool {
+        self.version_date != 20060720
+    }
+}
+
+#[binrw]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[br(import(has_w: bool))]
+pub struct Vert {
+    pub x: f32,
+    pub y: f32,
+    pub z: f32,
+    /// Always 0 in 20051005, a small unknown int in 20090629.
+    #[br(if(has_w))]
+    pub w: Option<f32>,
 }
 
 #[binrw]
@@ -25,8 +48,8 @@ pub struct Hit {
 
     #[bw(calc = verts.len() as u32)]
     pub vert_count: u32,
-    #[br(count = vert_count)]
-    pub verts: Vec<(f32, f32, f32)>,
+    #[br(count = vert_count, args { inner: (header.has_w(),) })]
+    pub verts: Vec<Vert>,
 }
 
 impl Hit {
