@@ -31,5 +31,7 @@ pub mod ntx;
 pub mod nui;
 #[cfg(feature = "tdf")]
 pub mod tdf;
+#[cfg(feature = "xipath2")]
+pub mod xipath2;
 #[cfg(feature = "xlt")]
 pub mod xlt;

@@ -26,6 +26,7 @@ default = [
     "xlt",
     "tdf",
     "ntx",
+    "xipath2",
 ]
 agt = ["flate2"]
 hit = []
@@ -42,6 +43,7 @@ chpath = []
 xlt = []
 tdf = []
 ntx = []
+xipath2 = []
 
 [dependencies]
 anyhow = "1.0.43"
