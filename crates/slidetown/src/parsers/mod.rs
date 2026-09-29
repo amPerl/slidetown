@@ -29,6 +29,8 @@ pub mod loi;
 pub mod ntx;
 #[cfg(feature = "nui")]
 pub mod nui;
+#[cfg(feature = "tcs")]
+pub mod tcs;
 #[cfg(feature = "tdf")]
 pub mod tdf;
 #[cfg(feature = "xipath2")]
