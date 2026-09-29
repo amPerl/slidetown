@@ -69,10 +69,22 @@ pub struct Main {
     pub paths: RawChunk,
     pub cross_signals: RawChunk,
     pub signal4cls: RawChunk,
-    pub roads: RawChunk,
-    pub cross_roads: RawChunk,
-    pub joints: RawChunk,
-    pub crosses: RawChunk,
+
+    #[br(parse_with = read_collection, args(0x20000, 0x20100, 0x20200, ()))]
+    #[bw(write_with = write_collection, args(0x20000, 0x20100, 0x20200, ()))]
+    pub roads: Collection<Road>,
+
+    #[br(parse_with = read_collection, args(0x50000, 0x50100, 0x50200, ()))]
+    #[bw(write_with = write_collection, args(0x50000, 0x50100, 0x50200, ()))]
+    pub cross_roads: Collection<CrossRoad>,
+
+    #[br(parse_with = read_collection, args(0x75000, 0x75100, 0x75200, ()))]
+    #[bw(write_with = write_collection, args(0x75000, 0x75100, 0x75200, ()))]
+    pub joints: Collection<Joint>,
+
+    #[br(parse_with = read_collection, args(0x10000, 0x11000, 0x12200, ()))]
+    #[bw(write_with = write_collection, args(0x10000, 0x11000, 0x12200, ()))]
+    pub crosses: Collection<Cross>,
 }
 
 #[binrw]
@@ -208,6 +220,102 @@ pub struct NdPoint {
     pub left_dist: f32,
 }
 
+/// a road, with the graph path it belongs to
+#[binrw]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct Road {
+    pub base: RoadBase,
+    pub nd_node: i32,
+    pub nd_path: i32,
+}
+
+/// the lanes each way along a road, and its arcs in the graph
+#[binrw]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct RoadBase {
+    pub area_id: i32,
+    pub id: i32,
+    pub lane_count: i32,
+
+    #[bw(calc = right_lane_ids.len() as i32)]
+    pub right_count: i32,
+    #[bw(calc = left_lane_ids.len() as i32)]
+    pub left_count: i32,
+    #[br(count = right_count)]
+    pub right_lane_ids: Vec<i32>,
+    #[br(count = left_count)]
+    pub left_lane_ids: Vec<i32>,
+
+    pub node0: i32,
+    pub arc0: i32,
+    pub node1: i32,
+    pub arc1: i32,
+}
+
+/// a road through an intersection
+#[binrw]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct CrossRoad {
+    pub base: RoadBase,
+    pub cross_road_id: i32,
+    pub node2: i32,
+    pub arc2: i32,
+    pub node3: i32,
+    pub arc3: i32,
+}
+
+#[binrw]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct Cross {
+    pub area_id: i32,
+    pub id: i32,
+    pub nd_node: i32,
+
+    #[bw(calc = cross_road_ids.len() as i32)]
+    pub cross_road_count: i32,
+    #[br(count = cross_road_count)]
+    pub cross_road_ids: Vec<i32>,
+
+    #[bw(calc = path_ids.len() as i32)]
+    pub path_count: i32,
+    /// the paths turning through it
+    #[br(count = path_count)]
+    pub path_ids: Vec<i32>,
+
+    /// -1 when unsignalled
+    pub cross_signal_id: i32,
+}
+
+/// where lanes run into each other
+#[binrw]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct Joint {
+    pub area_id: i32,
+    pub id: i32,
+    /// 0 in, 1 out, 2 none
+    pub joint_type: i32,
+
+    #[bw(calc = in_path_ids.len() as i32)]
+    pub in_count: i32,
+    #[bw(calc = out_path_ids.len() as i32)]
+    pub out_count: i32,
+    #[br(count = in_count)]
+    pub in_path_ids: Vec<i32>,
+    #[br(count = out_count)]
+    pub out_path_ids: Vec<i32>,
+
+    pub nd_node: i32,
+    pub arc: i32,
+}
+
+/// a container's count chunk and the chunks after it, which fill the container. the count isn't
+/// always how many there are: cras says 128 roads and has 126
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct Collection<T> {
+    pub count: i32,
+    pub items: Vec<T>,
+}
+
 /// count of the chunks that follow
 #[binrw]
 #[derive(Debug, PartialEq)]
@@ -239,7 +347,50 @@ pub struct RawChunk {
     pub data: Vec<u8>,
 }
 
-/// reads `{u32 id, u32 length}` and a `T` that fills the chunk exactly
+/// reads `{u32 id, u32 length}`, checking the id, and says where the chunk started and how long
+/// it is
+fn read_head<R: Read + Seek>(reader: &mut R, endian: Endian, id: u32) -> BinResult<(u64, u32)> {
+    let at = reader.stream_position()?;
+    let found = u32::read_options(reader, endian, ())?;
+    if found != id {
+        return Err(binrw::Error::AssertFail {
+            pos: at,
+            message: format!("expected chunk {:#x}, found {:#x}", id, found),
+        });
+    }
+    Ok((at, u32::read_options(reader, endian, ())?))
+}
+
+/// checks what was read of a chunk filled it exactly
+fn read_all<R: Read + Seek>(reader: &mut R, id: u32, (at, length): (u64, u32)) -> BinResult<()> {
+    let read = reader.stream_position()? - at;
+    if read != length as u64 {
+        return Err(binrw::Error::AssertFail {
+            pos: at,
+            message: format!("chunk {:#x} is {} bytes, read {}", id, length, read),
+        });
+    }
+    Ok(())
+}
+
+/// writes a head with no length yet, and says where it is
+fn write_head<W: Write + Seek>(writer: &mut W, endian: Endian, id: u32) -> BinResult<u64> {
+    let at = writer.stream_position()?;
+    id.write_options(writer, endian, ())?;
+    0u32.write_options(writer, endian, ())?;
+    Ok(at)
+}
+
+/// fills in the length of the chunk whose head is at `at`
+fn write_length<W: Write + Seek>(writer: &mut W, endian: Endian, at: u64) -> BinResult<()> {
+    let end = writer.stream_position()?;
+    writer.seek(SeekFrom::Start(at + 4))?;
+    ((end - at) as u32).write_options(writer, endian, ())?;
+    writer.seek(SeekFrom::Start(end))?;
+    Ok(())
+}
+
+/// reads a chunk of `T` that fills it exactly
 fn read_chunk<'a, T, R>(
     reader: &mut R,
     endian: Endian,
@@ -249,23 +400,9 @@ where
     T: BinRead,
     R: Read + Seek,
 {
-    let at = reader.stream_position()?;
-    let found = u32::read_options(reader, endian, ())?;
-    if found != id {
-        return Err(binrw::Error::AssertFail {
-            pos: at,
-            message: format!("expected chunk {:#x}, found {:#x}", id, found),
-        });
-    }
-    let length = u32::read_options(reader, endian, ())?;
+    let head = read_head(reader, endian, id)?;
     let value = T::read_options(reader, endian, args)?;
-    let read = reader.stream_position()? - at;
-    if read != length as u64 {
-        return Err(binrw::Error::AssertFail {
-            pos: at,
-            message: format!("chunk {:#x} is {} bytes, read {}", id, length, read),
-        });
-    }
+    read_all(reader, id, head)?;
     Ok(value)
 }
 
@@ -284,6 +421,28 @@ where
         .collect()
 }
 
+/// reads a container holding a count chunk and chunks of `T` up to its end
+fn read_collection<'a, T, R>(
+    reader: &mut R,
+    endian: Endian,
+    (id, count_id, item_id, args): (u32, u32, u32, T::Args<'a>),
+) -> BinResult<Collection<T>>
+where
+    T: BinRead,
+    T::Args<'a>: Clone,
+    R: Read + Seek,
+{
+    let head = read_head(reader, endian, id)?;
+    let count = read_chunk(reader, endian, (count_id, ()))?;
+    let end = head.0 + head.1 as u64;
+    let mut items = Vec::new();
+    while reader.stream_position()? < end {
+        items.push(read_chunk(reader, endian, (item_id, args.clone()))?);
+    }
+    read_all(reader, id, head)?;
+    Ok(Collection { count, items })
+}
+
 /// writes a chunk of `T`, filling in the length afterwards
 fn write_chunk<'a, T, W>(
     value: &T,
@@ -295,15 +454,9 @@ where
     T: BinWrite,
     W: Write + Seek,
 {
-    let at = writer.stream_position()?;
-    id.write_options(writer, endian, ())?;
-    0u32.write_options(writer, endian, ())?;
+    let at = write_head(writer, endian, id)?;
     value.write_options(writer, endian, args)?;
-    let end = writer.stream_position()?;
-    writer.seek(SeekFrom::Start(at + 4))?;
-    ((end - at) as u32).write_options(writer, endian, ())?;
-    writer.seek(SeekFrom::Start(end))?;
-    Ok(())
+    write_length(writer, endian, at)
 }
 
 // binrw passes the field as &Vec
@@ -322,4 +475,21 @@ where
     values
         .iter()
         .try_for_each(|value| write_chunk(value, writer, endian, (id, args.clone())))
+}
+
+fn write_collection<'a, T, W>(
+    collection: &Collection<T>,
+    writer: &mut W,
+    endian: Endian,
+    (id, count_id, item_id, args): (u32, u32, u32, T::Args<'a>),
+) -> BinResult<()>
+where
+    T: BinWrite,
+    T::Args<'a>: Clone,
+    W: Write + Seek,
+{
+    let at = write_head(writer, endian, id)?;
+    write_chunk(&collection.count, writer, endian, (count_id, ()))?;
+    write_chunks(&collection.items, writer, endian, (item_id, args))?;
+    write_length(writer, endian, at)
 }
