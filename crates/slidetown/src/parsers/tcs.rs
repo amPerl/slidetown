@@ -63,12 +63,29 @@ pub struct Main {
     #[bw(write_with = write_chunk, args(0x1000, ()))]
     pub graph: Graph,
 
-    pub time_keys: RawChunk,
-    pub signals: RawChunk,
-    pub signal_control: RawChunk,
-    pub paths: RawChunk,
-    pub cross_signals: RawChunk,
-    pub signal4cls: RawChunk,
+    #[br(parse_with = read_collection, args(0x90000, 0x90010, 0x90020, ()))]
+    #[bw(write_with = write_collection, args(0x90000, 0x90010, 0x90020, ()))]
+    pub time_keys: Collection<TimeKeys>,
+
+    #[br(parse_with = read_collection, args(0xA0000, 0xA0010, 0xA0030, ()))]
+    #[bw(write_with = write_collection, args(0xA0000, 0xA0010, 0xA0030, ()))]
+    pub signals: Collection<Signal>,
+
+    #[br(parse_with = read_counted_chunk, args(0xA0040, ()))]
+    #[bw(write_with = write_counted_chunk, args(0xA0040, ()))]
+    pub controlled_signal_ids: Vec<i32>,
+
+    #[br(parse_with = read_paths)]
+    #[bw(write_with = write_paths)]
+    pub paths: Paths,
+
+    #[br(parse_with = read_collection, args(0xA5000, 0xA5010, 0xA5030, ()))]
+    #[bw(write_with = write_collection, args(0xA5000, 0xA5010, 0xA5030, ()))]
+    pub cross_signals: Collection<CrossSignal>,
+
+    #[br(parse_with = read_chunk, args(0xA6000, ()))]
+    #[bw(write_with = write_chunk, args(0xA6000, ()))]
+    pub four_light_signals: FourLightSignals,
 
     #[br(parse_with = read_collection, args(0x20000, 0x20100, 0x20200, ()))]
     #[bw(write_with = write_collection, args(0x20000, 0x20100, 0x20200, ()))]
@@ -220,6 +237,142 @@ pub struct NdPoint {
     pub left_dist: f32,
 }
 
+/// how a car is posed along a path over time, one per path
+#[binrw]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct TimeKeys {
+    pub id: i32,
+    #[bw(calc = keys.len() as i32)]
+    pub key_count: i32,
+    #[br(count = key_count)]
+    pub keys: Vec<TimeKey>,
+}
+
+#[binrw]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct TimeKey {
+    pub time: f32,
+    pub position: [f32; 3],
+    pub right: [f32; 3],
+    pub direction: [f32; 3],
+    pub normal: [f32; 3],
+    pub rotation: [f32; 4],
+}
+
+#[binrw]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct Signal {
+    pub area_id: i32,
+    pub id: i32,
+    pub pos_time: f32,
+    pub dist: f32,
+    /// 0 stop, 1 intermediate, 2 go, 3 left max
+    pub default_state: i32,
+    pub path_id: i32,
+}
+
+/// an intersection's signal controller, which turns one road's signals green at a time
+#[binrw]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct CrossSignal {
+    pub area_id: i32,
+    pub id: i32,
+    #[bw(calc = roads.len() as i32)]
+    pub road_count: i32,
+    #[br(count = road_count)]
+    pub roads: Vec<CrossSignalRoad>,
+}
+
+#[binrw]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct CrossSignalRoad {
+    #[bw(calc = signal_ids.len() as i32)]
+    pub signal_count: i32,
+    #[br(count = signal_count)]
+    pub signal_ids: Vec<i32>,
+}
+
+/// the client's 4-light signals
+#[binrw]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct FourLightSignals {
+    #[br(parse_with = read_counted_chunk, args(0xA6010, ()))]
+    #[bw(write_with = write_counted_chunk, args(0xA6010, ()))]
+    pub controls: Vec<FourLightControl>,
+    #[br(parse_with = read_counted_chunk, args(0xA6030, ()))]
+    #[bw(write_with = write_counted_chunk, args(0xA6030, ()))]
+    pub signals: Vec<FourLightSignal>,
+}
+
+#[binrw]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct FourLightControl {
+    pub id: i32,
+    pub signal_id: i32,
+}
+
+#[binrw]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct FourLightSignal {
+    pub id: i32,
+    /// 0 stop, 1 intermediate, 2 go, 3 left max
+    pub state: i32,
+    /// index into the controls
+    pub control: i32,
+    pub signal_id: i32,
+}
+
+/// the lanes cars drive: every path's record, then every path's points
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct Paths {
+    pub count: i32,
+    pub paths: Vec<Path>,
+    pub points: Vec<PathPoints>,
+}
+
+/// one lane
+#[binrw]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct Path {
+    pub area_id: i32,
+    pub id: i32,
+    /// 0 forward, 1 right, 2 left, 3 left forward, 4 right forward
+    pub path_type: i32,
+    pub start_pos_time: f32,
+    pub end_pos_time: f32,
+    pub max_speed: f32,
+    pub stop_r_dist: f32,
+    pub cruise_dist: f32,
+    pub total_dist: f32,
+    pub time_keys_id: i32,
+    pub dec: i32,
+    pub inc: i32,
+    /// 0 path, 1 joint, 2 unknown
+    pub before_type: i32,
+    pub before_id: i32,
+    /// 0 path, 1 joint, 2 unknown
+    pub next_type: i32,
+    pub next_id: i32,
+
+    #[bw(calc = signal_ids.len() as i32)]
+    pub signal_count: i32,
+    #[br(count = signal_count)]
+    pub signal_ids: Vec<i32>,
+}
+
+/// the points of the path with the same id
+#[binrw]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct PathPoints {
+    pub area_id: i32,
+    pub id: i32,
+    pub delta: f32,
+    #[bw(calc = points.len() as i32)]
+    pub point_count: i32,
+    #[br(count = point_count)]
+    pub points: Vec<(f32, f32, f32)>,
+}
+
 /// a road, with the graph path it belongs to
 #[binrw]
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -336,17 +489,6 @@ impl Count {
     }
 }
 
-/// a chunk we don't parse yet
-#[binrw]
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct RawChunk {
-    pub id: u32,
-    #[bw(calc = data.len() as u32 + 8)]
-    pub length: u32,
-    #[br(count = length.saturating_sub(8))]
-    pub data: Vec<u8>,
-}
-
 /// reads `{u32 id, u32 length}`, checking the id, and says where the chunk started and how long
 /// it is
 fn read_head<R: Read + Seek>(reader: &mut R, endian: Endian, id: u32) -> BinResult<(u64, u32)> {
@@ -443,6 +585,64 @@ where
     Ok(Collection { count, items })
 }
 
+/// reads a chunk holding a count and that many `T`
+fn read_counted_chunk<'a, T, R>(
+    reader: &mut R,
+    endian: Endian,
+    (id, args): (u32, T::Args<'a>),
+) -> BinResult<Vec<T>>
+where
+    T: BinRead,
+    T::Args<'a>: Clone,
+    R: Read + Seek,
+{
+    let head = read_head(reader, endian, id)?;
+    let count = i32::read_options(reader, endian, ())?;
+    let values = (0..count)
+        .map(|_| T::read_options(reader, endian, args.clone()))
+        .collect::<BinResult<_>>()?;
+    read_all(reader, id, head)?;
+    Ok(values)
+}
+
+/// the id of the chunk coming up, leaving the reader where it was
+fn peek_id<R: Read + Seek>(reader: &mut R, endian: Endian) -> BinResult<u32> {
+    let at = reader.stream_position()?;
+    let id = u32::read_options(reader, endian, ())?;
+    reader.seek(SeekFrom::Start(at))?;
+    Ok(id)
+}
+
+#[binrw::parser(reader, endian)]
+fn read_paths() -> BinResult<Paths> {
+    let head = read_head(reader, endian, 0x70000)?;
+    let count = read_chunk(reader, endian, (0x70100, ()))?;
+    let end = head.0 + head.1 as u64;
+    let mut paths = Vec::new();
+    while reader.stream_position()? < end && peek_id(reader, endian)? == 0x70200 {
+        paths.push(read_chunk(reader, endian, (0x70200, ()))?);
+    }
+    let mut points = Vec::new();
+    while reader.stream_position()? < end {
+        points.push(read_chunk(reader, endian, (0x70300, ()))?);
+    }
+    read_all(reader, 0x70000, head)?;
+    Ok(Paths {
+        count,
+        paths,
+        points,
+    })
+}
+
+#[binrw::writer(writer, endian)]
+fn write_paths(paths: &Paths) -> BinResult<()> {
+    let at = write_head(writer, endian, 0x70000)?;
+    write_chunk(&paths.count, writer, endian, (0x70100, ()))?;
+    write_chunks(&paths.paths, writer, endian, (0x70200, ()))?;
+    write_chunks(&paths.points, writer, endian, (0x70300, ()))?;
+    write_length(writer, endian, at)
+}
+
 /// writes a chunk of `T`, filling in the length afterwards
 fn write_chunk<'a, T, W>(
     value: &T,
@@ -475,6 +675,27 @@ where
     values
         .iter()
         .try_for_each(|value| write_chunk(value, writer, endian, (id, args.clone())))
+}
+
+// binrw passes the field as &Vec
+#[allow(clippy::ptr_arg)]
+fn write_counted_chunk<'a, T, W>(
+    values: &Vec<T>,
+    writer: &mut W,
+    endian: Endian,
+    (id, args): (u32, T::Args<'a>),
+) -> BinResult<()>
+where
+    T: BinWrite,
+    T::Args<'a>: Clone,
+    W: Write + Seek,
+{
+    let at = write_head(writer, endian, id)?;
+    (values.len() as i32).write_options(writer, endian, ())?;
+    values
+        .iter()
+        .try_for_each(|value| value.write_options(writer, endian, args.clone()))?;
+    write_length(writer, endian, at)
 }
 
 fn write_collection<'a, T, W>(
