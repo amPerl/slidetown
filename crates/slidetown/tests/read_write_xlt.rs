@@ -19,7 +19,15 @@ fn vehiclelist_022() -> anyhow::Result<()> {
 
     assert_eq!(xlt.rows[0][7], "트래픽카 Cnt");
 
-    let _vehicle_list = VehicleList::from_xlt(&xlt)?;
+    let vehicle_list = VehicleList::from_xlt(&xlt)?;
+    // the starter cars open at stages of their own, which a flag would flatten
+    let starters: Vec<isize> = vehicle_list
+        .entries
+        .iter()
+        .map(|entry| entry.sellable)
+        .filter(|stage| *stage >= 10000)
+        .collect();
+    assert_eq!(starters, [40001, 10001, 20001, 30001]);
     // dbg!(&vehicle_list.meta);
     // for entry in vehicle_list.entries.iter() {
     //     eprintln!("{:?}", entry);

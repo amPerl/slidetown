@@ -162,9 +162,11 @@ pub struct VehicleListEntry {
     pub file_name: String,
     pub old_file_name: String,
     pub id: usize,
-    pub sellable: bool,
-    pub make_type: bool,      // ? 1 on some, otherwise 0
-    pub close_stage: bool,    // ? always 0
+    /// the stage the dealership starts selling it from, 0 or less for never
+    pub sellable: isize,
+    pub make_type: bool, // ? 1 on some, otherwise 0
+    /// the stage the dealership stops selling it at, 0 or less for never
+    pub close_stage: isize,
     pub display_order: isize, // 101, 102, 301, 302, etc..
     pub grade_kind: Option<GradeKind>,
     pub aero_set: bool, // ?
@@ -261,9 +263,9 @@ impl VehicleListEntry {
         parse_col!(file_name, 8);
         parse_col!(old_file_name, 9);
         parse_col!(id, 10);
-        parse_col_ty!(sellable, usize, 11);
+        parse_col_ty!(sellable, isize, 11);
         parse_col_ty!(make_type, usize, 12);
-        parse_col_ty!(close_stage, usize, 13);
+        parse_col_ty!(close_stage, isize, 13);
         parse_col!(display_order, 14);
 
         let grade_kind_str = row_iter
@@ -709,9 +711,9 @@ impl VehicleListEntry {
             file_name,
             old_file_name,
             id,
-            sellable: sellable != 0,
+            sellable,
             make_type: make_type != 0,
-            close_stage: close_stage != 0,
+            close_stage,
             display_order,
             grade_kind,
             aero_set: aero_set != 0,
