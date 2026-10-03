@@ -21,7 +21,9 @@ pub struct Header {
 #[bw(import(entry_offsets: Option<EntryOffsets>))]
 pub struct Model {
     pub index: u32,
-    pub unknown1: u32,
+    // set on models whose nif has NiCollisionData
+    #[serde(alias = "unknown1")]
+    pub collides: u32,
     pub unknown2: u32,
     pub unknown3: u32, // since 20061216, almost inverse of column N
     pub lighting: u32, // turns on light at night?
