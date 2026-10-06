@@ -41,8 +41,8 @@ pub struct BlockObject {
     pub unknown9: u32,
     /// Collider group ID, or -1 for no reference. Unreferenced colliders may still exist.
     pub collider_index: i32,
-    /// Usually zero; otherwise a small positive float.
-    pub unknown11: f32,
+    /// Seconds added to the clock before the model's animation is sampled. Zero on most copies.
+    pub anim_time_offset: f32,
 }
 
 #[binrw]
