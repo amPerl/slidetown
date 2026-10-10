@@ -70,8 +70,8 @@ fn process_info(info_opts: InfoOpts) -> anyhow::Result<()> {
 
     let ignore_ids = &[84, 146];
 
-    for block in loi.unknown_objects_2 {
-        for id in block.items {
+    for block in loi.ani_object_lists {
+        for id in block.object_ids {
             let mut skip = false;
             for block in loi.blocks.iter() {
                 for object in block.objects.iter() {
@@ -93,8 +93,8 @@ fn process_info(info_opts: InfoOpts) -> anyhow::Result<()> {
             unknown_2_ids.insert(id);
         }
     }
-    for block in loi.unknown_blocks_3 {
-        for id in block.items {
+    for block in loi.ani_object_blocks {
+        for id in block.object_ids {
             let mut skip = false;
             for block in loi.blocks.iter() {
                 for object in block.objects.iter() {
@@ -161,11 +161,11 @@ fn process_unpack(unpack_opts: UnpackOpts) -> anyhow::Result<()> {
     if unpack_opts.prune {
         loi_archive.blocks.retain(|block| !block.objects.is_empty());
         loi_archive
-            .unknown_objects_2
-            .retain(|unk2| !unk2.items.is_empty());
+            .ani_object_lists
+            .retain(|unk2| !unk2.object_ids.is_empty());
         loi_archive
-            .unknown_blocks_3
-            .retain(|anim| !anim.items.is_empty());
+            .ani_object_blocks
+            .retain(|anim| !anim.object_ids.is_empty());
         loi_archive
             .lamp_blocks
             .retain(|lamp| !lamp.lamp_ids.is_empty());

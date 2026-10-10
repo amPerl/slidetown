@@ -27,8 +27,8 @@ pub struct BlockObject {
     /// Added to `base_height`. Almost always: `base_height + height_offset = position.z`.
     pub height_offset: f32,
     pub base_height: f32,
-    /// ID used by colliders and the three trailing lists.
-    /// Sparse, unordered, and unique only within this file; other placement sets may reuse it.
+    /// ID used by colliders and the trailing lists. Unique within this file; order and gaps
+    /// don't matter, and other placement sets may reuse it.
     pub object_index: u32,
     /// Terrain block containing this object; matches the enclosing block.
     pub block_index: u32,
@@ -41,12 +41,14 @@ pub struct BlockObject {
     pub signal_id: u32,
     /// Traffic lights only, 0 or 1.
     pub signal_phase: u32,
-    /// Collider group ID, or -1 for no reference. Unreferenced colliders may still exist.
+    /// Position of this object's first row in `colliders`, or -1 for none.
     pub collider_index: i32,
     /// Seconds added to the clock before the model's animation is sampled. Zero on most copies.
     pub anim_time_offset: f32,
 }
 
+/// The objects in one terrain chunk. Only chunks with objects are listed, and each must also be
+/// in the set's `terrain0.lif`.
 #[binrw]
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Block {
@@ -57,42 +59,45 @@ pub struct Block {
     pub objects: Vec<BlockObject>,
 }
 
-/// A collision shape in world coordinates.
-/// An object's shapes share a `collider_index`, which identifies the group, not the row.
+/// A collision shape in world coordinates. An object's rows are contiguous.
 #[binrw]
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Collider {
     /// Owning object's `object_index`.
     pub object_index: u32,
-    /// Group ID shared by all of this object's colliders.
+    /// Position of the owner's first row in `colliders`; the same on every row of an owner.
     pub collider_index: u32,
-    pub r#type: u32, // 1-2 = Box, 4 = Capsule
+    /// 1-2 = box, 3 = sphere, 4 = capsule, 5 = the model's own col_wall/col_floor meshes.
+    pub r#type: u32,
     pub position: Vec3f,
     pub rotation: Mat3x3,
-    pub size: Vec3f,   // Box dimensions when 1-2
-    pub unknown5: f32, // Capsule height/2 when 4
+    /// Box dimensions when 1-2.
+    pub size: Vec3f,
+    /// Capsule half-height, sphere radius. Set on boxes too, but unused there.
+    pub half_height: f32,
 }
 
-/// Animated or sound-producing `object_index` values, grouped by terrain block.
-/// One of three lists with a row per block. IDs may reference objects outside this file,
-/// such as a track referencing its underlying world.
+/// Objects animated on the chunk clock, one list per terrain chunk. Ids may be in other chunks,
+/// and one that doesn't resolve is skipped.
 #[binrw]
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct UnknownObject2 {
-    #[bw(calc = items.len() as u32)]
-    pub unknown_count: u32,
-    #[br(count = unknown_count)]
-    pub items: Vec<u32>,
+pub struct AniObjectList {
+    #[bw(calc = object_ids.len() as u32)]
+    pub count: u32,
+    #[br(count = count)]
+    pub object_ids: Vec<u32>,
 }
 
+/// One per chunk of the set: objects animated every frame without the per-object camera check,
+/// for models without time controllers. Unlike `AniObjectList`, every id must resolve.
 #[binrw]
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct UnknownBlock3 {
+pub struct AniObjectBlock {
     pub block_index: u32,
-    #[bw(calc = items.len() as u32)]
-    pub unknown_count: u32,
-    #[br(count = unknown_count)]
-    pub items: Vec<u32>, // no idea. always empty in mp main loi
+    #[bw(calc = object_ids.len() as u32)]
+    pub count: u32,
+    #[br(count = count)]
+    pub object_ids: Vec<u32>,
 }
 
 /// Lamps in a terrain block and their total model glow-plane count (not light count).
@@ -119,6 +124,7 @@ pub struct TrafficLightBlock {
     pub traffic_light_ids: Vec<u32>,
 }
 
+/// A placement set. A track's file is complete on its own, not added on top of main's.
 #[binrw]
 #[br(import(total_block_count: usize))]
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -135,19 +141,20 @@ pub struct Loi {
     #[br(count = collider_count)]
     pub colliders: Vec<Collider>,
 
+    /// One per terrain chunk of the city, including chunks without objects.
     #[br(count = total_block_count)]
-    pub unknown_objects_2: Vec<UnknownObject2>,
+    pub ani_object_lists: Vec<AniObjectList>,
 
-    #[bw(calc = unknown_blocks_3.len() as u32)]
-    pub unknown_block_3_count: u32,
-    #[br(count = unknown_block_3_count)]
-    pub unknown_blocks_3: Vec<UnknownBlock3>,
+    #[bw(calc = ani_object_blocks.len() as u32)]
+    pub ani_object_block_count: u32,
+    #[br(count = ani_object_block_count)]
+    pub ani_object_blocks: Vec<AniObjectBlock>,
 
-    /// Lamp IDs grouped by terrain block.
+    /// Lamp IDs grouped by terrain block, one per chunk of the city.
     #[br(count = total_block_count)]
     pub lamp_blocks: Vec<LampBlock>,
 
-    /// Traffic light IDs grouped by terrain block.
+    /// Traffic light IDs grouped by terrain block, one per chunk of the city.
     #[br(count = total_block_count)]
     pub traffic_light_blocks: Vec<TrafficLightBlock>,
 }
