@@ -22,10 +22,11 @@ pub type Mat3x3 = (Vec3f, Vec3f, Vec3f);
 pub struct BlockObject {
     /// Always zero.
     pub unknown1: u32,
-    /// Always one.
-    pub unknown2: u32,
-    pub unknown3: f32,
-    pub unknown4: f32,
+    /// Always 1 on disk.
+    pub visible: u32,
+    /// Added to `base_height`. Almost always: `base_height + height_offset = position.z`.
+    pub height_offset: f32,
+    pub base_height: f32,
     /// ID used by colliders and the three trailing lists.
     /// Sparse, unordered, and unique only within this file; other placement sets may reuse it.
     pub object_index: u32,
@@ -36,9 +37,10 @@ pub struct BlockObject {
     pub rotation: Mat3x3,
     /// Uniform scale for all three axes.
     pub scale: f32,
-    pub unknown8: u32,
-    /// Zero or one.
-    pub unknown9: u32,
+    /// Traffic lights only: the light's row in the client signal table, plus 10.
+    pub signal_id: u32,
+    /// Traffic lights only, 0 or 1.
+    pub signal_phase: u32,
     /// Collider group ID, or -1 for no reference. Unreferenced colliders may still exist.
     pub collider_index: i32,
     /// Seconds added to the clock before the model's animation is sampled. Zero on most copies.
